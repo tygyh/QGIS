@@ -1049,7 +1049,7 @@ set(QGIS_INSTALL_SYS_LIBS TRUE CACHE BOOL "If set to TRUE install all required s
 #############################################################
 # Python
 
-set(MIN_PYTHON_VERSION "3.7")
+set(MIN_PYTHON_VERSION "3.9")
 set(Python_FIND_FRAMEWORK "LAST")
 
 
@@ -1101,7 +1101,7 @@ if (WITH_CORE AND WITH_BINDINGS)
   include(SIPMacros)
 
   set(SIP_INCLUDES ${PYQT_SIP_DIR} ${CMAKE_SOURCE_DIR}/python)
-  set(SIP_CONCAT_PARTS 22)
+  set(SIP_CONCAT_PARTS 25)
 
   if (NOT BINDINGS_GLOBAL_INSTALL)
     set(Python_SITEARCH ${QGIS_DATA_DIR}/python)

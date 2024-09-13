@@ -197,7 +197,7 @@ QVariantMap QgsRasterizeAlgorithm::processAlgorithm( const QVariantMap &paramete
         }
         feedback->pushInfo( QStringLiteral( "%1" ).arg( totalTiles ) );
 
-        if ( totalTiles > 5000 )
+        if ( totalTiles > MAXIMUM_OPENSTREETMAP_TILES_FETCH )
         {
           // Prevent bulk downloading of tiles from openstreetmap.org as per OSMF tile usage policy
           feedback->pushFormattedMessage( QObject::tr( "Layer %1 will be skipped as the algorithm leads to bulk downloading behavior which is prohibited by the %2OpenStreetMap Foundation tile usage policy%3" ).arg( rasterLayer->name(), QStringLiteral( "<a href=\"https://operations.osmfoundation.org/policies/tiles/\">" ), QStringLiteral( "</a>" ) ),
@@ -316,7 +316,7 @@ QVariantMap QgsRasterizeAlgorithm::processAlgorithm( const QVariantMap &paramete
     gdal::dataset_unique_ptr hIntermediateDataset( QgsGdalUtils::imageToMemoryDataset( image ) );
     if ( !hIntermediateDataset )
     {
-      throw QgsProcessingException( QStringLiteral( "Error reading tiles from the temporary image" ) );
+      throw QgsProcessingException( QObject::tr( "Error reading tiles from the temporary image" ) );
     }
 
     const int xOffset { x * tileSize };
@@ -329,7 +329,7 @@ QVariantMap QgsRasterizeAlgorithm::processAlgorithm( const QVariantMap &paramete
                                       tileSize, tileSize, GDT_Byte, nBands, nullptr, 0, 0, 0 );
     if ( err != CE_None )
     {
-      throw QgsProcessingException( QStringLiteral( "Error reading intermediate raster" ) );
+      throw QgsProcessingException( QObject::tr( "Error reading intermediate raster" ) );
     }
 
     {
@@ -343,7 +343,7 @@ QVariantMap QgsRasterizeAlgorithm::processAlgorithm( const QVariantMap &paramete
     }
     if ( err != CE_None )
     {
-      throw QgsProcessingException( QStringLiteral( "Error writing output raster" ) );
+      throw QgsProcessingException( QObject::tr( "Error writing output raster" ) );
     }
   };
 

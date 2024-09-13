@@ -1206,8 +1206,9 @@ def detect_comment_block(strict_mode=True):
     CONTEXT.comment_code_snippet = CodeSnippetType.NotCodeSnippet
     CONTEXT.comment_last_line_note_warning = False
     CONTEXT.found_since = False
-    CONTEXT.skipped_params_out = []
-    CONTEXT.skipped_params_remove = []
+    if CONTEXT.multiline_definition == MultiLineType.NotMultiline:
+        CONTEXT.skipped_params_out = []
+        CONTEXT.skipped_params_remove = []
 
     if re.match(r'^\s*/\*', CONTEXT.current_line) or (
             not strict_mode and '/*' in CONTEXT.current_line):
@@ -2520,7 +2521,7 @@ while CONTEXT.line_idx < CONTEXT.line_count:
                 CONTEXT.current_line) and CONTEXT.comment:
             attribute_name_match = re.match(r'^.*?\s[*&]*(\w+);.*$',
                                             CONTEXT.current_line)
-            class_name = '.'.join([c for c in CONTEXT.classname if c != CONTEXT.actual_class] + [CONTEXT.actual_class])
+            class_name = CONTEXT.current_fully_qualified_struct_name()
             dbg_info(
                 f'storing attribute docstring for {class_name} : {attribute_name_match.group(1)}')
             CONTEXT.attribute_docstrings[class_name][
@@ -2661,13 +2662,16 @@ while CONTEXT.line_idx < CONTEXT.line_count:
                     param_match = re.match(r'^:param\s+(\w+)', comment_line)
                     if param_match:
                         param_name = param_match.group(1)
+                        dbg_info(f'found parameter: {param_name}')
                         if param_name in CONTEXT.skipped_params_out or param_name in CONTEXT.skipped_params_remove:
+                            dbg_info(str(CONTEXT.skipped_params_out))
                             if param_name in CONTEXT.skipped_params_out:
+                                dbg_info(f'deferring docs for parameter {param_name} marked as SIP_OUT')
                                 comment_line = re.sub(
                                     r'^:param\s+(\w+):\s*(.*?)$', r'\1: \2',
                                     comment_line)
                                 comment_line = re.sub(
-                                    r'(?:optional|if specified|if given),?\s*',
+                                    r'(?:optional|if specified|if given|storage for|will be set to),?\s*',
                                     '',
                                     comment_line)
                                 out_params.append(comment_line)
@@ -2727,9 +2731,22 @@ while CONTEXT.line_idx < CONTEXT.line_count:
                         else:
                             pass  # Return docstring should be single line with SIP_OUT params
 
-                if out_params and CONTEXT.return_type:
-                    exit_with_error(
-                        f"A method with output parameters must contain a return directive (method returns {CONTEXT.return_type})")
+                if out_params:
+                    if CONTEXT.return_type:
+                        exit_with_error(
+                            f"A method with output parameters must contain a return directive ({CONTEXT.current_method_name} method returns {CONTEXT.return_type})")
+                    else:
+                        doc_string += "\n"
+
+                        for out_param_idx, out_param in enumerate(out_params):
+                            if out_param_idx == 0:
+                                if len(out_params) > 1:
+                                    doc_string += f":return: - {out_param}\n"
+                                else:
+                                    arg_name_match = re.match(r'^(.*?):\s*(.*?)$', out_param)
+                                    doc_string += f":return: {arg_name_match.group(2)}\n"
+                            else:
+                                doc_string += f"{doc_prepend}         - {out_param}\n"
 
                 dbg_info(f'doc_string is {doc_string}')
                 write_output("DS", doc_string)
@@ -2761,9 +2778,10 @@ else:
           ''.join(CONTEXT.output) +
           ''.join(sip_header_footer()).rstrip())
 
+class_additions = defaultdict(list)
+
 for class_name, attribute_docstrings in CONTEXT.attribute_docstrings.items():
-    CONTEXT.output_python.append(
-        f'try:\n    {class_name}.__attribute_docs__ = {str(attribute_docstrings)}\nexcept NameError:\n    pass\n')
+    class_additions[class_name].append(f'{class_name}.__attribute_docs__ = {str(attribute_docstrings)}')
 
 for class_name, static_methods in CONTEXT.static_methods.items():
     for method_name, is_static in static_methods.items():
@@ -2782,7 +2800,8 @@ for class_name, static_methods in CONTEXT.static_methods.items():
         elif class_name == 'QgsServerApiUtils' and method_name == 'temporalExtentList':
             method_name = 'temporalExtent'
 
-        CONTEXT.output_python.append(f'{class_name}.{method_name} = staticmethod({class_name}.{method_name})\n')
+        class_additions[class_name].append(
+            f'{class_name}.{method_name} = staticmethod({class_name}.{method_name})')
 
 for class_name, signal_arguments in CONTEXT.signal_arguments.items():
     python_signatures = {}
@@ -2799,19 +2818,25 @@ for class_name, signal_arguments in CONTEXT.signal_arguments.items():
             python_signatures[signal] = python_args
 
     if python_signatures:
-        CONTEXT.output_python.append(
-            f'try:\n    {class_name}.__signal_arguments__ = {str(python_signatures)}\nexcept NameError:\n    pass\n')
+        class_additions[class_name].append(
+            f'{class_name}.__signal_arguments__ = {str(python_signatures)}')
 
 for class_name, doc_string in CONTEXT.struct_docstrings.items():
-    CONTEXT.output_python.append(f'{class_name}.__doc__ = """{doc_string}"""\n')
+    class_additions[class_name].append(f'{class_name}.__doc__ = """{doc_string}"""')
 
 group_match = re.match('^.*src/[a-z0-9_]+/(.*?)/[^/]+$', CONTEXT.header_file)
 if group_match:
     groups = list(group for group in group_match.group(1).split('/') if group and group != '.')
     if groups:
         for class_name in CONTEXT.all_fully_qualified_class_names:
-            CONTEXT.output_python.append(
-                f'try:\n    {class_name}.__group__ = {groups}\nexcept NameError:\n    pass\n')
+            class_additions[class_name].append(
+                f'{class_name}.__group__ = {groups}')
+
+for _class, additions in class_additions.items():
+    if additions:
+        this_class_additions = "\n".join("    " + c for c in additions)
+        CONTEXT.output_python.append(
+            f'try:\n{this_class_additions}\nexcept NameError:\n    pass\n')
 
 
 if args.python_output and CONTEXT.output_python:

@@ -65,6 +65,51 @@ The development version
 %End
 
 
+    enum class AuthConfigurationStorageCapability
+    {
+      ClearStorage,
+
+      ReadConfiguration,
+      UpdateConfiguration,
+      DeleteConfiguration,
+      CreateConfiguration,
+
+      ReadCertificateIdentity,
+      UpdateCertificateIdentity,
+      DeleteCertificateIdentity,
+      CreateCertificateIdentity,
+
+      ReadSslCertificateCustomConfig,
+      UpdateSslCertificateCustomConfig,
+      DeleteSslCertificateCustomConfig,
+      CreateSslCertificateCustomConfig,
+
+      ReadCertificateAuthority,
+      UpdateCertificateAuthority,
+      DeleteCertificateAuthority,
+      CreateCertificateAuthority,
+
+      ReadCertificateTrustPolicy,
+      UpdateCertificateTrustPolicy,
+      DeleteCertificateTrustPolicy,
+      CreateCertificateTrustPolicy,
+
+      ReadMasterPassword,
+      UpdateMasterPassword,
+      DeleteMasterPassword,
+      CreateMasterPassword,
+
+      ReadSetting,
+      UpdateSetting,
+      DeleteSetting,
+      CreateSetting,
+
+    };
+
+    typedef QFlags<Qgis::AuthConfigurationStorageCapability> AuthConfigurationStorageCapabilities;
+
+
+
     enum MessageLevel
     {
       Info,
@@ -133,6 +178,8 @@ The development version
       CurvePolygon,
       MultiCurve,
       MultiSurface,
+      PolyhedralSurface,
+      TIN,
       NoGeometry,
       PointZ,
       LineStringZ,
@@ -147,6 +194,8 @@ The development version
       CurvePolygonZ,
       MultiCurveZ,
       MultiSurfaceZ,
+      PolyhedralSurfaceZ,
+      TINZ,
       PointM,
       LineStringM,
       PolygonM,
@@ -160,6 +209,8 @@ The development version
       CurvePolygonM,
       MultiCurveM,
       MultiSurfaceM,
+      PolyhedralSurfaceM,
+      TINM,
       PointZM,
       LineStringZM,
       PolygonZM,
@@ -172,6 +223,8 @@ The development version
       CurvePolygonZM,
       MultiCurveZM,
       MultiSurfaceZM,
+      PolyhedralSurfaceZM,
+      TINZM,
       TriangleZM,
       Point25D,
       LineString25D,
@@ -1102,6 +1155,15 @@ The development version
       Miter,
       Bevel,
     };
+
+    enum class GeosCreationFlag
+    {
+      RejectOnInvalidSubGeometry,
+      SkipEmptyInteriorRings,
+    };
+
+    typedef QFlags<Qgis::GeosCreationFlag> GeosCreationFlags;
+
 
     enum class CoverageValidityResult
     {
@@ -3081,6 +3143,8 @@ QFlags<Qgis::AnnotationItemFlag> operator|(Qgis::AnnotationItemFlag f1, QFlags<Q
 
 QFlags<Qgis::AnnotationItemGuiFlag> operator|(Qgis::AnnotationItemGuiFlag f1, QFlags<Qgis::AnnotationItemGuiFlag> f2);
 
+QFlags<Qgis::AuthConfigurationStorageCapability> operator|(Qgis::AuthConfigurationStorageCapability f1, QFlags<Qgis::AuthConfigurationStorageCapability> f2);
+
 QFlags<Qgis::BabelCommandFlag> operator|(Qgis::BabelCommandFlag f1, QFlags<Qgis::BabelCommandFlag> f2);
 
 QFlags<Qgis::BabelFormatCapability> operator|(Qgis::BabelFormatCapability f1, QFlags<Qgis::BabelFormatCapability> f2);
@@ -3188,6 +3252,8 @@ QFlags<Qgis::VectorLayerTypeFlag> operator|(Qgis::VectorLayerTypeFlag f1, QFlags
 QFlags<Qgis::VectorTileProviderCapability> operator|(Qgis::VectorTileProviderCapability f1, QFlags<Qgis::VectorTileProviderCapability> f2);
 
 QFlags<Qgis::VectorTileProviderFlag> operator|(Qgis::VectorTileProviderFlag f1, QFlags<Qgis::VectorTileProviderFlag> f2);
+
+QFlags<Qgis::GeosCreationFlag> operator|(Qgis::GeosCreationFlag f1, QFlags<Qgis::GeosCreationFlag> f2);
 
 QFlags<Qgis::FeatureRequestFlag> operator|(Qgis::FeatureRequestFlag f1, QFlags<Qgis::FeatureRequestFlag> f2);
 

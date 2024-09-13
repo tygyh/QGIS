@@ -1314,6 +1314,11 @@ QByteArray QgsOgrProviderUtils::quotedIdentifier( QByteArray field, const QStrin
     field.replace( '`', "``" );
     return field.prepend( '`' ).append( '`' );
   }
+  else if ( driverName == QLatin1String( "GPKG" ) || driverName == QLatin1String( "SQLite" ) )
+  {
+    field.replace( '"', "\"\"" );
+    return field.prepend( '\"' ).append( '\"' );
+  }
   else
   {
     field.replace( '\\', "\\\\" );
@@ -1823,6 +1828,24 @@ OGRwkbGeometryType QgsOgrProviderUtils::ogrTypeFromQgisType( Qgis::WkbType type 
     case Qgis::WkbType::TriangleZM:
       return wkbTriangleZM;
 
+    case Qgis::WkbType::PolyhedralSurface:
+      return wkbPolyhedralSurface;
+    case Qgis::WkbType::PolyhedralSurfaceZ:
+      return wkbPolyhedralSurfaceZ;
+    case Qgis::WkbType::PolyhedralSurfaceM:
+      return wkbPolyhedralSurfaceM;
+    case Qgis::WkbType::PolyhedralSurfaceZM:
+      return wkbPolyhedralSurfaceZM;
+
+    case Qgis::WkbType::TIN:
+      return wkbTIN;
+    case Qgis::WkbType::TINZ:
+      return wkbTINZ;
+    case Qgis::WkbType::TINM:
+      return wkbTINM;
+    case Qgis::WkbType::TINZM:
+      return wkbTINZM;
+
     case Qgis::WkbType::NoGeometry:
       return wkbNone;
 
@@ -1944,6 +1967,24 @@ Qgis::WkbType QgsOgrProviderUtils::qgisTypeFromOgrType( OGRwkbGeometryType type 
     case wkbTriangleZM:
       return Qgis::WkbType::TriangleZM;
 
+    case wkbPolyhedralSurface:
+      return Qgis::WkbType::PolyhedralSurface;
+    case wkbPolyhedralSurfaceZ:
+      return Qgis::WkbType::PolyhedralSurfaceZ;
+    case wkbPolyhedralSurfaceM:
+      return Qgis::WkbType::PolyhedralSurfaceM;
+    case wkbPolyhedralSurfaceZM:
+      return Qgis::WkbType::PolyhedralSurfaceZM;
+
+    case wkbTIN:
+      return Qgis::WkbType::TIN;
+    case wkbTINZ:
+      return Qgis::WkbType::TINZ;
+    case wkbTINM:
+      return Qgis::WkbType::TINM;
+    case wkbTINZM:
+      return Qgis::WkbType::TINZM;
+
     case wkbPoint25D:
       return Qgis::WkbType::Point25D;
     case wkbLineString25D:
@@ -1970,14 +2011,6 @@ Qgis::WkbType QgsOgrProviderUtils::qgisTypeFromOgrType( OGRwkbGeometryType type 
       return Qgis::WkbType::Unknown; // abstract types - no direct mapping to QGIS types
 
     case wkbLinearRing:
-    case wkbTIN:
-    case wkbTINZ:
-    case wkbTINM:
-    case wkbTINZM:
-    case wkbPolyhedralSurface:
-    case wkbPolyhedralSurfaceZ:
-    case wkbPolyhedralSurfaceM:
-    case wkbPolyhedralSurfaceZM:
       return Qgis::WkbType::Unknown; // unsupported types
   }
   return Qgis::WkbType::Unknown;

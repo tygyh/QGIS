@@ -93,6 +93,7 @@
 #include "maptools/qgsappmaptools.h"
 #include "qgsexpressioncontextutils.h"
 #include "qgsauxiliarystorage.h"
+#include "qgsvectortileutils.h"
 
 #include "qgsbrowserwidget.h"
 #include "annotations/qgsannotationitempropertieswidget.h"
@@ -2015,9 +2016,9 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipBadLayers
     if ( !error.isEmpty() )
     {
       QPushButton *detailsButton = new QPushButton( tr( "View Error" ) );
-      connect( detailsButton, &QPushButton::clicked, this, [detailsButton, error]
+      connect( detailsButton, &QPushButton::clicked, this, [error]
       {
-        QgsMessageViewer *dialog = new QgsMessageViewer( detailsButton );
+        QgsMessageViewer *dialog = new QgsMessageViewer( nullptr, QgsGuiUtils::ModalDialogFlags, true );
         dialog->setTitle( tr( "Font Install Failed" ) );
         dialog->setMessage( error, QgsMessageOutput::MessageText );
         dialog->showMessage();
@@ -2516,6 +2517,8 @@ QList< QgsMapLayer * > QgisApp::handleDropUriList( const QgsMimeDataUtils::UriLi
     else if ( u.layerType == QLatin1String( "vector-tile" ) )
     {
       QgsTemporaryCursorOverride busyCursor( Qt::WaitCursor );
+
+      QgsVectorTileUtils::updateUriSources( uri );
 
       const QgsVectorTileLayer::LayerOptions options( QgsProject::instance()->transformContext() );
       QgsVectorTileLayer *layer = new QgsVectorTileLayer( uri, u.name, options );
@@ -16903,10 +16906,10 @@ void QgisApp::namUpdate()
 
 void QgisApp::masterPasswordSetup()
 {
-  connect( QgsApplication::authManager(), &QgsAuthManager::messageOut,
-           this, &QgisApp::authMessageOut );
-  connect( QgsApplication::authManager(), &QgsAuthManager::passwordHelperMessageOut,
-           this, &QgisApp::authMessageOut );
+  connect( QgsApplication::authManager(), &QgsAuthManager::messageLog,
+           this, &QgisApp::authMessageLog );
+  connect( QgsApplication::authManager(), &QgsAuthManager::passwordHelperMessageLog,
+           this, &QgisApp::authMessageLog );
   connect( QgsApplication::authManager(), &QgsAuthManager::authDatabaseEraseRequested,
            this, &QgisApp::eraseAuthenticationDatabase );
 }
@@ -16943,7 +16946,7 @@ void QgisApp::eraseAuthenticationDatabase()
   QgsAuthGuiUtils::eraseAuthenticationDatabase( messageBar(), this );
 }
 
-void QgisApp::authMessageOut( const QString &message, const QString &authtag, QgsAuthManager::MessageLevel level )
+void QgisApp::authMessageLog( const QString &message, const QString &authtag, Qgis::MessageLevel level )
 {
   // Use system notifications if the main window is not the active one,
   // push message to the message bar if the main window is active
@@ -16953,8 +16956,7 @@ void QgisApp::authMessageOut( const QString &message, const QString &authtag, Qg
   }
   else
   {
-    int levelint = static_cast< int >( level );
-    visibleMessageBar()->pushMessage( authtag, message, static_cast< Qgis::MessageLevel >( levelint ) );
+    visibleMessageBar()->pushMessage( authtag, message, level );
   }
 }
 

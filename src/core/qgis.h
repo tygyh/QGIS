@@ -92,6 +92,61 @@ class CORE_EXPORT Qgis
     //
 
     /**
+     * Authentication configuration storage capabilities.
+     *
+     * \since QGIS 3.40
+     */
+    enum class AuthConfigurationStorageCapability: int SIP_ENUM_BASETYPE( IntFlag )
+    {
+      ClearStorage = 1 << 0, //!< Can clear all configurations from storage
+
+      ReadConfiguration = 1 << 1, //!< Can read an authentication configuration
+      UpdateConfiguration = 1 << 2, //!< Can update an authentication configuration
+      DeleteConfiguration = 1 << 3, //!< Can deleet an authentication configuration
+      CreateConfiguration = 1 << 4, //!< Can create a new authentication configuration
+
+      ReadCertificateIdentity = 1 << 5, //!< Can read a certificate identity
+      UpdateCertificateIdentity = 1 << 6, //!< Can update a certificate identity
+      DeleteCertificateIdentity = 1 << 7, //!< Can delete a certificate identity
+      CreateCertificateIdentity = 1 << 8, //!< Can create a new certificate identity
+
+      ReadSslCertificateCustomConfig = 1 << 9, //!< Can read a SSL certificate custom config
+      UpdateSslCertificateCustomConfig = 1 << 10, //!< Can update a SSL certificate custom config
+      DeleteSslCertificateCustomConfig = 1 << 11, //!< Can delete a SSL certificate custom config
+      CreateSslCertificateCustomConfig = 1 << 12, //!< Can create a new SSL certificate custom config
+
+      ReadCertificateAuthority = 1 << 13, //!< Can read a certificate authority
+      UpdateCertificateAuthority = 1 << 14, //!< Can update a certificate authority
+      DeleteCertificateAuthority = 1 << 15, //!< Can delete a certificate authority
+      CreateCertificateAuthority = 1 << 16, //!< Can create a new certificate authority
+
+      ReadCertificateTrustPolicy = 1 << 17, //!< Can read a certificate trust policy
+      UpdateCertificateTrustPolicy = 1 << 18, //!< Can update a certificate trust policy
+      DeleteCertificateTrustPolicy = 1 << 19, //!< Can delete a certificate trust policy
+      CreateCertificateTrustPolicy = 1 << 20, //!< Can create a new certificate trust policy
+
+      ReadMasterPassword = 1 << 21, //!< Can read the master password
+      UpdateMasterPassword = 1 << 22, //!< Can update the master password
+      DeleteMasterPassword = 1 << 23, //!< Can delete the master password
+      CreateMasterPassword = 1 << 24, //!< Can create a new master password
+
+      ReadSetting = 1 << 25, //!< Can read the authentication settings
+      UpdateSetting = 1 << 26, //!< Can update the authentication setting
+      DeleteSetting = 1 << 27, //!< Can delete the authentication setting
+      CreateSetting = 1 << 28, //!< Can create a new authentication setting
+
+    };
+    Q_ENUM( AuthConfigurationStorageCapability )
+
+    /**
+     *  Authentication configuration storage capabilities
+     *  \since QGIS 3.40
+     */
+    Q_DECLARE_FLAGS( AuthConfigurationStorageCapabilities, AuthConfigurationStorageCapability )
+    Q_FLAG( AuthConfigurationStorageCapabilities )
+
+
+    /**
      * \brief Level for messages
      * This will be used both for message log and message bar in application.
      */
@@ -213,6 +268,8 @@ class CORE_EXPORT Qgis
       CurvePolygon = 10, //!< CurvePolygon
       MultiCurve = 11, //!< MultiCurve
       MultiSurface = 12, //!< MultiSurface
+      PolyhedralSurface = 15, //!< PolyhedralSurface \since QGIS 3.40
+      TIN = 16, //!< TIN \since QGIS 3.40
       NoGeometry = 100, //!< No geometry
       PointZ = 1001, //!< PointZ
       LineStringZ = 1002, //!< LineStringZ
@@ -227,6 +284,8 @@ class CORE_EXPORT Qgis
       CurvePolygonZ = 1010, //!< CurvePolygonZ
       MultiCurveZ = 1011, //!< MultiCurveZ
       MultiSurfaceZ = 1012, //!< MultiSurfaceZ
+      PolyhedralSurfaceZ = 1015, //!< PolyhedralSurfaceZ
+      TINZ = 1016, //!< TINZ
       PointM = 2001, //!< PointM
       LineStringM = 2002, //!< LineStringM
       PolygonM = 2003, //!< PolygonM
@@ -240,6 +299,8 @@ class CORE_EXPORT Qgis
       CurvePolygonM = 2010, //!< CurvePolygonM
       MultiCurveM = 2011, //!< MultiCurveM
       MultiSurfaceM = 2012, //!< MultiSurfaceM
+      PolyhedralSurfaceM = 2015, //!< PolyhedralSurfaceM
+      TINM = 2016, //!< TINM
       PointZM = 3001, //!< PointZM
       LineStringZM = 3002, //!< LineStringZM
       PolygonZM = 3003, //!< PolygonZM
@@ -252,6 +313,8 @@ class CORE_EXPORT Qgis
       CurvePolygonZM = 3010, //!< CurvePolygonZM
       MultiCurveZM = 3011, //!< MultiCurveZM
       MultiSurfaceZM = 3012, //!< MultiSurfaceZM
+      PolyhedralSurfaceZM = 3015, //!< PolyhedralSurfaceM
+      TINZM = 3016, //!< TINZM
       TriangleZM = 3017, //!< TriangleZM
       Point25D = 0x80000001, //!< Point25D
       LineString25D, //!< LineString25D
@@ -1876,6 +1939,26 @@ class CORE_EXPORT Qgis
       Bevel SIP_MONKEYPATCH_COMPAT_NAME( JoinStyleBevel ), //!< Use beveled joins
     };
     Q_ENUM( JoinStyle )
+
+    /**
+     * Flags which control geos geometry creation behavior.
+     *
+     * \since QGIS 3.40
+     */
+    enum class GeosCreationFlag : int SIP_ENUM_BASETYPE( IntFlag )
+    {
+      RejectOnInvalidSubGeometry = 1 << 0,  //!< Don't allow geometries with invalid sub-geometries to be created
+      SkipEmptyInteriorRings = 1 << 1,      //!< Skip any empty polygon interior ring
+    };
+    Q_ENUM( GeosCreationFlag )
+
+    /**
+     * Geos geometry creation behavior flags.
+     *
+     * \since QGIS 3.40
+     */
+    Q_DECLARE_FLAGS( GeosCreationFlags, GeosCreationFlag )
+    Q_FLAG( GeosCreationFlags )
 
     /**
      * Coverage validity results.
@@ -5470,6 +5553,7 @@ QHASH_FOR_CLASS_ENUM( Qgis::RasterAttributeTableFieldUsage )
 
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::AnnotationItemFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::AnnotationItemGuiFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::AuthConfigurationStorageCapabilities )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::BabelCommandFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::BabelFormatCapabilities )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::BrowserItemCapabilities )
@@ -5524,6 +5608,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorFileWriterCapabilities )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorLayerTypeFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorTileProviderCapabilities )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorTileProviderFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::GeosCreationFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::FeatureRequestFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::ProcessingFeatureSourceDefinitionFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::ZonalStatistics )

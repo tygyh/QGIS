@@ -1,4 +1,74 @@
 # The following has been generated automatically from src/core/qgis.h
+# monkey patching scoped based enum
+Qgis.AuthConfigurationStorageCapability.ClearStorage.__doc__ = "Can clear all configurations from storage"
+Qgis.AuthConfigurationStorageCapability.ReadConfiguration.__doc__ = "Can read an authentication configuration"
+Qgis.AuthConfigurationStorageCapability.UpdateConfiguration.__doc__ = "Can update an authentication configuration"
+Qgis.AuthConfigurationStorageCapability.DeleteConfiguration.__doc__ = "Can deleet an authentication configuration"
+Qgis.AuthConfigurationStorageCapability.CreateConfiguration.__doc__ = "Can create a new authentication configuration"
+Qgis.AuthConfigurationStorageCapability.ReadCertificateIdentity.__doc__ = "Can read a certificate identity"
+Qgis.AuthConfigurationStorageCapability.UpdateCertificateIdentity.__doc__ = "Can update a certificate identity"
+Qgis.AuthConfigurationStorageCapability.DeleteCertificateIdentity.__doc__ = "Can delete a certificate identity"
+Qgis.AuthConfigurationStorageCapability.CreateCertificateIdentity.__doc__ = "Can create a new certificate identity"
+Qgis.AuthConfigurationStorageCapability.ReadSslCertificateCustomConfig.__doc__ = "Can read a SSL certificate custom config"
+Qgis.AuthConfigurationStorageCapability.UpdateSslCertificateCustomConfig.__doc__ = "Can update a SSL certificate custom config"
+Qgis.AuthConfigurationStorageCapability.DeleteSslCertificateCustomConfig.__doc__ = "Can delete a SSL certificate custom config"
+Qgis.AuthConfigurationStorageCapability.CreateSslCertificateCustomConfig.__doc__ = "Can create a new SSL certificate custom config"
+Qgis.AuthConfigurationStorageCapability.ReadCertificateAuthority.__doc__ = "Can read a certificate authority"
+Qgis.AuthConfigurationStorageCapability.UpdateCertificateAuthority.__doc__ = "Can update a certificate authority"
+Qgis.AuthConfigurationStorageCapability.DeleteCertificateAuthority.__doc__ = "Can delete a certificate authority"
+Qgis.AuthConfigurationStorageCapability.CreateCertificateAuthority.__doc__ = "Can create a new certificate authority"
+Qgis.AuthConfigurationStorageCapability.ReadCertificateTrustPolicy.__doc__ = "Can read a certificate trust policy"
+Qgis.AuthConfigurationStorageCapability.UpdateCertificateTrustPolicy.__doc__ = "Can update a certificate trust policy"
+Qgis.AuthConfigurationStorageCapability.DeleteCertificateTrustPolicy.__doc__ = "Can delete a certificate trust policy"
+Qgis.AuthConfigurationStorageCapability.CreateCertificateTrustPolicy.__doc__ = "Can create a new certificate trust policy"
+Qgis.AuthConfigurationStorageCapability.ReadMasterPassword.__doc__ = "Can read the master password"
+Qgis.AuthConfigurationStorageCapability.UpdateMasterPassword.__doc__ = "Can update the master password"
+Qgis.AuthConfigurationStorageCapability.DeleteMasterPassword.__doc__ = "Can delete the master password"
+Qgis.AuthConfigurationStorageCapability.CreateMasterPassword.__doc__ = "Can create a new master password"
+Qgis.AuthConfigurationStorageCapability.ReadSetting.__doc__ = "Can read the authentication settings"
+Qgis.AuthConfigurationStorageCapability.UpdateSetting.__doc__ = "Can update the authentication setting"
+Qgis.AuthConfigurationStorageCapability.DeleteSetting.__doc__ = "Can delete the authentication setting"
+Qgis.AuthConfigurationStorageCapability.CreateSetting.__doc__ = "Can create a new authentication setting"
+Qgis.AuthConfigurationStorageCapability.__doc__ = """Authentication configuration storage capabilities.
+
+.. versionadded:: 3.40
+
+* ``ClearStorage``: Can clear all configurations from storage
+* ``ReadConfiguration``: Can read an authentication configuration
+* ``UpdateConfiguration``: Can update an authentication configuration
+* ``DeleteConfiguration``: Can deleet an authentication configuration
+* ``CreateConfiguration``: Can create a new authentication configuration
+* ``ReadCertificateIdentity``: Can read a certificate identity
+* ``UpdateCertificateIdentity``: Can update a certificate identity
+* ``DeleteCertificateIdentity``: Can delete a certificate identity
+* ``CreateCertificateIdentity``: Can create a new certificate identity
+* ``ReadSslCertificateCustomConfig``: Can read a SSL certificate custom config
+* ``UpdateSslCertificateCustomConfig``: Can update a SSL certificate custom config
+* ``DeleteSslCertificateCustomConfig``: Can delete a SSL certificate custom config
+* ``CreateSslCertificateCustomConfig``: Can create a new SSL certificate custom config
+* ``ReadCertificateAuthority``: Can read a certificate authority
+* ``UpdateCertificateAuthority``: Can update a certificate authority
+* ``DeleteCertificateAuthority``: Can delete a certificate authority
+* ``CreateCertificateAuthority``: Can create a new certificate authority
+* ``ReadCertificateTrustPolicy``: Can read a certificate trust policy
+* ``UpdateCertificateTrustPolicy``: Can update a certificate trust policy
+* ``DeleteCertificateTrustPolicy``: Can delete a certificate trust policy
+* ``CreateCertificateTrustPolicy``: Can create a new certificate trust policy
+* ``ReadMasterPassword``: Can read the master password
+* ``UpdateMasterPassword``: Can update the master password
+* ``DeleteMasterPassword``: Can delete the master password
+* ``CreateMasterPassword``: Can create a new master password
+* ``ReadSetting``: Can read the authentication settings
+* ``UpdateSetting``: Can update the authentication setting
+* ``DeleteSetting``: Can delete the authentication setting
+* ``CreateSetting``: Can create a new authentication setting
+
+"""
+# --
+Qgis.AuthConfigurationStorageCapability.baseClass = Qgis
+Qgis.AuthConfigurationStorageCapabilities = lambda flags=0: Qgis.AuthConfigurationStorageCapability(flags)
+Qgis.AuthConfigurationStorageCapabilities.baseClass = Qgis
+AuthConfigurationStorageCapabilities = Qgis  # dirty hack since SIP seems to introduce the flags in module
 Qgis.Info = Qgis.MessageLevel.Info
 Qgis.Warning = Qgis.MessageLevel.Warning
 Qgis.Critical = Qgis.MessageLevel.Critical
@@ -235,6 +305,12 @@ QgsWkbTypes.MultiCurve.__doc__ = "MultiCurve"
 QgsWkbTypes.MultiSurface = Qgis.WkbType.MultiSurface
 QgsWkbTypes.MultiSurface.is_monkey_patched = True
 QgsWkbTypes.MultiSurface.__doc__ = "MultiSurface"
+QgsWkbTypes.PolyhedralSurface = Qgis.WkbType.PolyhedralSurface
+QgsWkbTypes.PolyhedralSurface.is_monkey_patched = True
+QgsWkbTypes.PolyhedralSurface.__doc__ = "PolyhedralSurface \n.. versionadded:: 3.40"
+QgsWkbTypes.TIN = Qgis.WkbType.TIN
+QgsWkbTypes.TIN.is_monkey_patched = True
+QgsWkbTypes.TIN.__doc__ = "TIN \n.. versionadded:: 3.40"
 QgsWkbTypes.NoGeometry = Qgis.WkbType.NoGeometry
 QgsWkbTypes.NoGeometry.is_monkey_patched = True
 QgsWkbTypes.NoGeometry.__doc__ = "No geometry"
@@ -277,6 +353,12 @@ QgsWkbTypes.MultiCurveZ.__doc__ = "MultiCurveZ"
 QgsWkbTypes.MultiSurfaceZ = Qgis.WkbType.MultiSurfaceZ
 QgsWkbTypes.MultiSurfaceZ.is_monkey_patched = True
 QgsWkbTypes.MultiSurfaceZ.__doc__ = "MultiSurfaceZ"
+QgsWkbTypes.PolyhedralSurfaceZ = Qgis.WkbType.PolyhedralSurfaceZ
+QgsWkbTypes.PolyhedralSurfaceZ.is_monkey_patched = True
+QgsWkbTypes.PolyhedralSurfaceZ.__doc__ = "PolyhedralSurfaceZ"
+QgsWkbTypes.TINZ = Qgis.WkbType.TINZ
+QgsWkbTypes.TINZ.is_monkey_patched = True
+QgsWkbTypes.TINZ.__doc__ = "TINZ"
 QgsWkbTypes.PointM = Qgis.WkbType.PointM
 QgsWkbTypes.PointM.is_monkey_patched = True
 QgsWkbTypes.PointM.__doc__ = "PointM"
@@ -316,6 +398,12 @@ QgsWkbTypes.MultiCurveM.__doc__ = "MultiCurveM"
 QgsWkbTypes.MultiSurfaceM = Qgis.WkbType.MultiSurfaceM
 QgsWkbTypes.MultiSurfaceM.is_monkey_patched = True
 QgsWkbTypes.MultiSurfaceM.__doc__ = "MultiSurfaceM"
+QgsWkbTypes.PolyhedralSurfaceM = Qgis.WkbType.PolyhedralSurfaceM
+QgsWkbTypes.PolyhedralSurfaceM.is_monkey_patched = True
+QgsWkbTypes.PolyhedralSurfaceM.__doc__ = "PolyhedralSurfaceM"
+QgsWkbTypes.TINM = Qgis.WkbType.TINM
+QgsWkbTypes.TINM.is_monkey_patched = True
+QgsWkbTypes.TINM.__doc__ = "TINM"
 QgsWkbTypes.PointZM = Qgis.WkbType.PointZM
 QgsWkbTypes.PointZM.is_monkey_patched = True
 QgsWkbTypes.PointZM.__doc__ = "PointZM"
@@ -352,6 +440,12 @@ QgsWkbTypes.MultiCurveZM.__doc__ = "MultiCurveZM"
 QgsWkbTypes.MultiSurfaceZM = Qgis.WkbType.MultiSurfaceZM
 QgsWkbTypes.MultiSurfaceZM.is_monkey_patched = True
 QgsWkbTypes.MultiSurfaceZM.__doc__ = "MultiSurfaceZM"
+QgsWkbTypes.PolyhedralSurfaceZM = Qgis.WkbType.PolyhedralSurfaceZM
+QgsWkbTypes.PolyhedralSurfaceZM.is_monkey_patched = True
+QgsWkbTypes.PolyhedralSurfaceZM.__doc__ = "PolyhedralSurfaceM"
+QgsWkbTypes.TINZM = Qgis.WkbType.TINZM
+QgsWkbTypes.TINZM.is_monkey_patched = True
+QgsWkbTypes.TINZM.__doc__ = "TINZM"
 QgsWkbTypes.TriangleZM = Qgis.WkbType.TriangleZM
 QgsWkbTypes.TriangleZM.is_monkey_patched = True
 QgsWkbTypes.TriangleZM.__doc__ = "TriangleZM"
@@ -415,6 +509,14 @@ a different mode.
 * ``CurvePolygon``: CurvePolygon
 * ``MultiCurve``: MultiCurve
 * ``MultiSurface``: MultiSurface
+* ``PolyhedralSurface``: PolyhedralSurface
+
+  .. versionadded:: 3.40
+
+* ``TIN``: TIN
+
+  .. versionadded:: 3.40
+
 * ``NoGeometry``: No geometry
 * ``PointZ``: PointZ
 * ``LineStringZ``: LineStringZ
@@ -429,6 +531,8 @@ a different mode.
 * ``CurvePolygonZ``: CurvePolygonZ
 * ``MultiCurveZ``: MultiCurveZ
 * ``MultiSurfaceZ``: MultiSurfaceZ
+* ``PolyhedralSurfaceZ``: PolyhedralSurfaceZ
+* ``TINZ``: TINZ
 * ``PointM``: PointM
 * ``LineStringM``: LineStringM
 * ``PolygonM``: PolygonM
@@ -442,6 +546,8 @@ a different mode.
 * ``CurvePolygonM``: CurvePolygonM
 * ``MultiCurveM``: MultiCurveM
 * ``MultiSurfaceM``: MultiSurfaceM
+* ``PolyhedralSurfaceM``: PolyhedralSurfaceM
+* ``TINM``: TINM
 * ``PointZM``: PointZM
 * ``LineStringZM``: LineStringZM
 * ``PolygonZM``: PolygonZM
@@ -454,6 +560,8 @@ a different mode.
 * ``CurvePolygonZM``: CurvePolygonZM
 * ``MultiCurveZM``: MultiCurveZM
 * ``MultiSurfaceZM``: MultiSurfaceZM
+* ``PolyhedralSurfaceZM``: PolyhedralSurfaceM
+* ``TINZM``: TINZM
 * ``TriangleZM``: TriangleZM
 * ``Point25D``: Point25D
 * ``LineString25D``: LineString25D
@@ -3509,6 +3617,22 @@ Qgis.JoinStyle.__doc__ = """Join styles for buffers.
 """
 # --
 Qgis.JoinStyle.baseClass = Qgis
+# monkey patching scoped based enum
+Qgis.GeosCreationFlag.RejectOnInvalidSubGeometry.__doc__ = "Don't allow geometries with invalid sub-geometries to be created"
+Qgis.GeosCreationFlag.SkipEmptyInteriorRings.__doc__ = "Skip any empty polygon interior ring"
+Qgis.GeosCreationFlag.__doc__ = """Flags which control geos geometry creation behavior.
+
+.. versionadded:: 3.40
+
+* ``RejectOnInvalidSubGeometry``: Don't allow geometries with invalid sub-geometries to be created
+* ``SkipEmptyInteriorRings``: Skip any empty polygon interior ring
+
+"""
+# --
+Qgis.GeosCreationFlag.baseClass = Qgis
+Qgis.GeosCreationFlags = lambda flags=0: Qgis.GeosCreationFlag(flags)
+Qgis.GeosCreationFlags.baseClass = Qgis
+GeosCreationFlags = Qgis  # dirty hack since SIP seems to introduce the flags in module
 # monkey patching scoped based enum
 Qgis.CoverageValidityResult.Invalid.__doc__ = "Coverage is invalid. Invalidity includes polygons that overlap, that have gaps smaller than the gap width, or non-polygonal entries in the input collection."
 Qgis.CoverageValidityResult.Valid.__doc__ = "Coverage is valid"
@@ -10259,15 +10383,15 @@ Qgis.ColorModel.__doc__ = """Color model types
 Qgis.ColorModel.baseClass = Qgis
 try:
     Qgis.__attribute_docs__ = {'QGIS_DEV_VERSION': 'The development version', 'DEFAULT_SEARCH_RADIUS_MM': 'Identify search radius in mm', 'DEFAULT_MAPTOPIXEL_THRESHOLD': 'Default threshold between map coordinates and device coordinates for map2pixel simplification', 'DEFAULT_HIGHLIGHT_COLOR': 'Default highlight color.  The transparency is expected to only be applied to polygon\nfill. Lines and outlines are rendered opaque.', 'DEFAULT_HIGHLIGHT_BUFFER_MM': 'Default highlight buffer in mm.', 'DEFAULT_HIGHLIGHT_MIN_WIDTH_MM': 'Default highlight line/stroke minimum width in mm.', 'SCALE_PRECISION': 'Fudge factor used to compare two scales. The code is often going from scale to scale\ndenominator. So it looses precision and, when a limit is inclusive, can lead to errors.\nTo avoid that, use this factor instead of using <= or >=.', 'DEFAULT_Z_COORDINATE': 'Default Z coordinate value.\nThis value have to be assigned to the Z coordinate for the vertex.', 'DEFAULT_M_COORDINATE': 'Default M coordinate value.\nThis value have to be assigned to the M coordinate for the vertex.\n\n.. versionadded:: 3.20', 'UI_SCALE_FACTOR': 'UI scaling factor. This should be applied to all widget sizes obtained from font metrics,\nto account for differences in the default font sizes across different platforms.', 'DEFAULT_SNAP_TOLERANCE': 'Default snapping distance tolerance.', 'DEFAULT_SNAP_UNITS': 'Default snapping distance units.'}
+    Qgis.version = staticmethod(Qgis.version)
+    Qgis.versionInt = staticmethod(Qgis.versionInt)
+    Qgis.releaseName = staticmethod(Qgis.releaseName)
+    Qgis.devVersion = staticmethod(Qgis.devVersion)
+    Qgis.defaultProjectScales = staticmethod(Qgis.defaultProjectScales)
+    Qgis.geosVersionInt = staticmethod(Qgis.geosVersionInt)
+    Qgis.geosVersionMajor = staticmethod(Qgis.geosVersionMajor)
+    Qgis.geosVersionMinor = staticmethod(Qgis.geosVersionMinor)
+    Qgis.geosVersionPatch = staticmethod(Qgis.geosVersionPatch)
+    Qgis.geosVersion = staticmethod(Qgis.geosVersion)
 except NameError:
     pass
-Qgis.version = staticmethod(Qgis.version)
-Qgis.versionInt = staticmethod(Qgis.versionInt)
-Qgis.releaseName = staticmethod(Qgis.releaseName)
-Qgis.devVersion = staticmethod(Qgis.devVersion)
-Qgis.defaultProjectScales = staticmethod(Qgis.defaultProjectScales)
-Qgis.geosVersionInt = staticmethod(Qgis.geosVersionInt)
-Qgis.geosVersionMajor = staticmethod(Qgis.geosVersionMajor)
-Qgis.geosVersionMinor = staticmethod(Qgis.geosVersionMinor)
-Qgis.geosVersionPatch = staticmethod(Qgis.geosVersionPatch)
-Qgis.geosVersion = staticmethod(Qgis.geosVersion)
