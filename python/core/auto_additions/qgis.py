@@ -719,34 +719,37 @@ Qgis.VectorLayerTypeFlag.baseClass = Qgis
 Qgis.VectorLayerTypeFlags.baseClass = Qgis
 VectorLayerTypeFlags = Qgis  # dirty hack since SIP seems to introduce the flags in module
 # monkey patching scoped based enum
-Qgis.Never = Qgis.PythonMacroMode.Never
-Qgis.Never.is_monkey_patched = True
-Qgis.Never.__doc__ = "Macros are never run"
-Qgis.Ask = Qgis.PythonMacroMode.Ask
-Qgis.Ask.is_monkey_patched = True
-Qgis.Ask.__doc__ = "User is prompt before running"
-Qgis.SessionOnly = Qgis.PythonMacroMode.SessionOnly
-Qgis.SessionOnly.is_monkey_patched = True
-Qgis.SessionOnly.__doc__ = "Only during this session"
-Qgis.Always = Qgis.PythonMacroMode.Always
-Qgis.Always.is_monkey_patched = True
-Qgis.Always.__doc__ = "Macros are always run"
-Qgis.NotForThisSession = Qgis.PythonMacroMode.NotForThisSession
-Qgis.NotForThisSession.is_monkey_patched = True
-Qgis.NotForThisSession.__doc__ = "Macros will not be run for this session"
-Qgis.PythonMacroMode.__doc__ = """Authorisation to run Python Macros
+Qgis.PythonEmbeddedMode.Never.__doc__ = "Python embedded never run"
+Qgis.PythonEmbeddedMode.Ask.__doc__ = "User is prompt before running"
+Qgis.PythonEmbeddedMode.SessionOnly.__doc__ = "Only during this session"
+Qgis.PythonEmbeddedMode.Always.__doc__ = "Python embedded is always run"
+Qgis.PythonEmbeddedMode.NotForThisSession.__doc__ = "Python embedded will not be run for this session"
+Qgis.PythonEmbeddedMode.__doc__ = """Authorisation to run Python Embedded in projects
 
-.. versionadded:: 3.10
+.. versionadded:: 3.40
 
-* ``Never``: Macros are never run
+* ``Never``: Python embedded never run
 * ``Ask``: User is prompt before running
 * ``SessionOnly``: Only during this session
-* ``Always``: Macros are always run
-* ``NotForThisSession``: Macros will not be run for this session
+* ``Always``: Python embedded is always run
+* ``NotForThisSession``: Python embedded will not be run for this session
 
 """
 # --
-Qgis.PythonMacroMode.baseClass = Qgis
+Qgis.PythonEmbeddedMode.baseClass = Qgis
+# monkey patching scoped based enum
+Qgis.PythonEmbeddedType.Macro.__doc__ = ""
+Qgis.PythonEmbeddedType.ExpressionFunction.__doc__ = ""
+Qgis.PythonEmbeddedType.__doc__ = """Type of Python Embedded in projects
+
+.. versionadded:: 3.40
+
+* ``Macro``: 
+* ``ExpressionFunction``: 
+
+"""
+# --
+Qgis.PythonEmbeddedType.baseClass = Qgis
 QgsDataProvider.ReadFlag = Qgis.DataProviderReadFlag
 # monkey patching scoped based enum
 QgsDataProvider.FlagTrustDataSource = Qgis.DataProviderReadFlag.TrustDataSource
@@ -1415,12 +1418,30 @@ Qgis.SymbolRotationMode.__doc__ = """Modes for handling how symbol and text enti
 # --
 Qgis.SymbolRotationMode.baseClass = Qgis
 # monkey patching scoped based enum
+Qgis.FeatureRendererFlag.AffectsLabeling.__doc__ = "If present, indicates that the renderer will participate in the map labeling problem"
+Qgis.FeatureRendererFlag.__doc__ = """Flags controlling behavior of vector feature renderers.
+
+.. versionadded:: 3.40
+
+* ``AffectsLabeling``: If present, indicates that the renderer will participate in the map labeling problem
+
+"""
+# --
+Qgis.FeatureRendererFlag.baseClass = Qgis
+Qgis.FeatureRendererFlags.baseClass = Qgis
+FeatureRendererFlags = Qgis  # dirty hack since SIP seems to introduce the flags in module
+# monkey patching scoped based enum
 Qgis.SymbolFlag.RendererShouldUseSymbolLevels.__doc__ = "If present, indicates that a QgsFeatureRenderer using the symbol should use symbol levels for best results"
+Qgis.SymbolFlag.AffectsLabeling.__doc__ = "If present, indicates that the symbol will participate in the map labeling problem \n.. versionadded:: 3.40"
 Qgis.SymbolFlag.__doc__ = """Flags controlling behavior of symbols
 
 .. versionadded:: 3.20
 
 * ``RendererShouldUseSymbolLevels``: If present, indicates that a QgsFeatureRenderer using the symbol should use symbol levels for best results
+* ``AffectsLabeling``: If present, indicates that the symbol will participate in the map labeling problem
+
+  .. versionadded:: 3.40
+
 
 """
 # --
@@ -1447,6 +1468,7 @@ SymbolPreviewFlags = Qgis  # dirty hack since SIP seems to introduce the flags i
 # monkey patching scoped based enum
 Qgis.SymbolLayerFlag.DisableFeatureClipping.__doc__ = "If present, indicates that features should never be clipped to the map extent during rendering"
 Qgis.SymbolLayerFlag.CanCalculateMaskGeometryPerFeature.__doc__ = "If present, indicates that mask geometry can safely be calculated per feature for the symbol layer. This avoids using the entire symbol layer's mask geometry for every feature rendered, considerably simplifying vector exports and resulting in much smaller file sizes. \n.. versionadded:: 3.38"
+Qgis.SymbolLayerFlag.AffectsLabeling.__doc__ = "If present, indicates that the symbol layer will participate in the map labeling problem \n.. versionadded:: 3.40"
 Qgis.SymbolLayerFlag.__doc__ = """Flags controlling behavior of symbol layers
 
 .. note::
@@ -1461,6 +1483,10 @@ Qgis.SymbolLayerFlag.__doc__ = """Flags controlling behavior of symbol layers
 * ``CanCalculateMaskGeometryPerFeature``: If present, indicates that mask geometry can safely be calculated per feature for the symbol layer. This avoids using the entire symbol layer's mask geometry for every feature rendered, considerably simplifying vector exports and resulting in much smaller file sizes.
 
   .. versionadded:: 3.38
+
+* ``AffectsLabeling``: If present, indicates that the symbol layer will participate in the map labeling problem
+
+  .. versionadded:: 3.40
 
 
 """
@@ -4737,12 +4763,17 @@ RenderContextFlags = Qgis  # dirty hack since SIP seems to introduce the flags i
 # monkey patching scoped based enum
 Qgis.MapLayerRendererFlag.RenderPartialOutputs.__doc__ = "The renderer benefits from rendering temporary in-progress preview renders. These are temporary results which will be used for the layer during rendering in-progress compositions, which will differ from the final layer render. They can be used for showing overlays or other information to users which help inform them about what is actually occurring during a slow layer render, but where these overlays and additional content is not wanted in the final layer renders. Another use case is rendering unsorted results as soon as they are available, before doing a final sorted render of the entire layer contents."
 Qgis.MapLayerRendererFlag.RenderPartialOutputOverPreviousCachedImage.__doc__ = "When rendering temporary in-progress preview renders, these preview renders can be drawn over any previously cached layer render we have for the same region. This can allow eg a low-resolution zoomed in version of the last map render to be used as a base painting surface to overdraw with incremental preview render outputs. If not set, an empty image will be used as the starting point for the render preview image."
+Qgis.MapLayerRendererFlag.AffectsLabeling.__doc__ = "The layer rendering will interact with the map labeling \n.. versionadded:: 3.40"
 Qgis.MapLayerRendererFlag.__doc__ = """Flags which control how map layer renderers behave.
 
 .. versionadded:: 3.34
 
 * ``RenderPartialOutputs``: The renderer benefits from rendering temporary in-progress preview renders. These are temporary results which will be used for the layer during rendering in-progress compositions, which will differ from the final layer render. They can be used for showing overlays or other information to users which help inform them about what is actually occurring during a slow layer render, but where these overlays and additional content is not wanted in the final layer renders. Another use case is rendering unsorted results as soon as they are available, before doing a final sorted render of the entire layer contents.
 * ``RenderPartialOutputOverPreviousCachedImage``: When rendering temporary in-progress preview renders, these preview renders can be drawn over any previously cached layer render we have for the same region. This can allow eg a low-resolution zoomed in version of the last map render to be used as a base painting surface to overdraw with incremental preview render outputs. If not set, an empty image will be used as the starting point for the render preview image.
+* ``AffectsLabeling``: The layer rendering will interact with the map labeling
+
+  .. versionadded:: 3.40
+
 
 """
 # --
