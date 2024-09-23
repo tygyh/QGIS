@@ -59,7 +59,7 @@ QgsGdalOption QgsGdalOption::fromXmlNode( const CPLXMLNode *node )
     {
       if ( psOption->eType != CXT_Element ||
            !EQUAL( psOption->pszValue, "Value" ) ||
-           psOption->psChild == nullptr )
+           !psOption->psChild )
       {
         continue;
       }
@@ -411,7 +411,7 @@ static bool resampleSingleBandRasterStatic( GDALDatasetH hSrcDS, GDALDatasetH hD
 bool QgsGdalUtils::resampleSingleBandRaster( GDALDatasetH hSrcDS, GDALDatasetH hDstDS, GDALResampleAlg resampleAlg, const char *pszCoordinateOperation )
 {
   char **papszOptions = nullptr;
-  if ( pszCoordinateOperation != nullptr )
+  if ( pszCoordinateOperation )
     papszOptions = CSLSetNameValue( papszOptions, "COORDINATE_OPERATION", pszCoordinateOperation );
 
   bool result = resampleSingleBandRasterStatic( hSrcDS, hDstDS, resampleAlg, papszOptions );
@@ -498,7 +498,9 @@ QString QgsGdalUtils::helpCreationOptionsFormat( const QString &format )
     message += QStringLiteral( "  Extension: %1\n" ).arg( CSLFetchNameValue( GDALmetadata, GDAL_DMD_EXTENSION ) );
     message += QStringLiteral( "  Short Name: %1" ).arg( GDALGetDriverShortName( myGdalDriver ) );
     message += QStringLiteral( "  /  Long Name: %1\n" ).arg( GDALGetDriverLongName( myGdalDriver ) );
-    message += QStringLiteral( "  Help page:  http://www.gdal.org/%1\n\n" ).arg( CSLFetchNameValue( GDALmetadata, GDAL_DMD_HELPTOPIC ) );
+    const QString helpUrl = gdalDocumentationUrlForDriver( myGdalDriver );
+    if ( !helpUrl.isEmpty() )
+      message += QStringLiteral( "  Help page:  %1\n\n" ).arg( helpUrl );
 
     // next get creation options
     // need to serialize xml to get newlines, should we make the basic xml prettier?
@@ -773,14 +775,14 @@ QStringList QgsGdalUtils::multiLayerFileExtensions()
       bool isMultiLayer = false;
       if ( QString( GDALGetMetadataItem( driver, GDAL_DCAP_RASTER, nullptr ) ) == QLatin1String( "YES" ) )
       {
-        if ( GDALGetMetadataItem( driver, GDAL_DMD_SUBDATASETS, nullptr ) != nullptr )
+        if ( GDALGetMetadataItem( driver, GDAL_DMD_SUBDATASETS, nullptr ) )
         {
           isMultiLayer = true;
         }
       }
       if ( !isMultiLayer && QString( GDALGetMetadataItem( driver, GDAL_DCAP_VECTOR, nullptr ) ) == QLatin1String( "YES" ) )
       {
-        if ( GDALGetMetadataItem( driver, GDAL_DCAP_MULTIPLE_VECTOR_LAYERS, nullptr ) != nullptr )
+        if ( GDALGetMetadataItem( driver, GDAL_DCAP_MULTIPLE_VECTOR_LAYERS, nullptr ) )
         {
           isMultiLayer = true;
         }
@@ -1039,6 +1041,17 @@ bool QgsGdalUtils::vrtMatchesLayerType( const QString &vrtPath, Qgis::LayerType 
 
   CPLPopErrorHandler();
   return static_cast< bool >( hDriver );
+}
+
+QString QgsGdalUtils::gdalDocumentationUrlForDriver( GDALDriverH hDriver )
+{
+  if ( hDriver )
+  {
+    const QString gdalDriverHelpTopic = GDALGetMetadataItem( hDriver, GDAL_DMD_HELPTOPIC, nullptr );  // e.g. "drivers/vector/ili.html"
+    if ( !gdalDriverHelpTopic.isEmpty() )
+      return QStringLiteral( "https://gdal.org/%1" ).arg( gdalDriverHelpTopic );
+  }
+  return QString();
 }
 
 bool QgsGdalUtils::applyVsiCredentialOptions( const QString &prefix, const QString &path, const QVariantMap &options )

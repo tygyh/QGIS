@@ -487,6 +487,7 @@
 //
 // GDAL/OGR includes
 //
+#include <gdal.h>
 #include <ogr_api.h>
 #include <gdal_version.h>
 #include <proj.h>
@@ -5518,12 +5519,11 @@ QString QgisApp::getVersionString()
   const QString compLabel = tr( "Compiled" );
   const QString runLabel = tr( "Running" );
 
-  versionString += QStringLiteral( "<tr><td colspan=\"2\"><b>%1</b></td>" ).arg( tr( "Libraries" ) );
   versionString += QStringLiteral( "<tr><td>%1</td><td>%2</td>" ).arg( tr( "QGIS version" ), Qgis::version() );
-
+  versionString += QLatin1String( "</tr><tr>" );
   if ( QString( Qgis::devVersion() ) == QLatin1String( "exported" ) )
   {
-    versionString += tr( "QGIS code branch" );
+    versionString += QStringLiteral( "<td>%1</td>" ).arg( tr( "QGIS code branch" ) );
     if ( Qgis::version().endsWith( QLatin1String( "Master" ) ) )
     {
       versionString += QLatin1String( "<td><a href=\"https://github.com/qgis/QGIS/tree/master\">master</a></td>" );
@@ -5536,11 +5536,12 @@ QString QgisApp::getVersionString()
   }
   else
   {
-    versionString += QLatin1String( "</tr><tr>" );
     versionString += QStringLiteral( "<td>%1</td><td><a href=\"https://github.com/qgis/QGIS/commit/%2\">%2</a></td>" ).arg( tr( "QGIS code revision" ), Qgis::devVersion() );
   }
   versionString += QLatin1String( "</tr><tr>" );
 
+  versionString += QStringLiteral( "<td colspan=\"2\">&nbsp;</td></tr><tr><td colspan=\"2\"><b>%1</b></td>" ).arg( tr( "Libraries" ) );
+  versionString += QLatin1String( "</tr><tr>" );
   // Qt version
   const QString qtVersionCompiled{ QT_VERSION_STR };
   const QString qtVersionRunning{ qVersion() };
@@ -6022,7 +6023,7 @@ void QgisApp::fileOpenAfterLaunch()
   }
 
   // Is this a storage based project?
-  const bool projectIsFromStorage { QgsApplication::projectStorageRegistry()->projectStorageFromUri( projPath ) != nullptr };
+  const bool projectIsFromStorage = QgsApplication::projectStorageRegistry()->projectStorageFromUri( projPath );
 
   if ( !projectIsFromStorage &&
        !projPath.endsWith( QLatin1String( ".qgs" ), Qt::CaseInsensitive ) &&
@@ -8638,9 +8639,23 @@ QString QgisApp::saveAsVectorFileGeneral( QgsVectorLayer *vlayer, bool symbology
     QgsVectorFileWriterTask *writerTask = new QgsVectorFileWriterTask( vlayer, vectorFilename, options );
 
     // when writer is successful:
-    connect( writerTask, &QgsVectorFileWriterTask::completed, this, [onSuccess, addToCanvas, encoding, vectorFilename]( const QString & newFilename, const QString & newLayer )
+    connect( writerTask, &QgsVectorFileWriterTask::completed, this, [onSuccess, addToCanvas, encoding, vectorFilename, format]( const QString & newFilename, const QString & newLayer )
     {
-      onSuccess( newFilename, addToCanvas, newLayer, encoding, vectorFilename );
+      QString layerName  = newLayer;
+#ifdef GDAL_DCAP_MULTIPLE_VECTOR_LAYERS
+      GDALDriverH hDriver = GDALGetDriverByName( format.toUtf8().constData() );
+      if ( hDriver )
+      {
+        // If the driver doesn't advertise supporting multiple vector layers,
+        // do not attempt to append the layer name to the connection URI
+        // This would for example break for the GeoJSONSeq driver.
+        if ( !GDALGetMetadataItem( hDriver, GDAL_DCAP_MULTIPLE_VECTOR_LAYERS, nullptr ) )
+        {
+          layerName.clear();
+        }
+      }
+#endif
+      onSuccess( newFilename, addToCanvas, layerName, encoding, vectorFilename );
     } );
 
     // when an error occurs:
@@ -15269,6 +15284,7 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
       QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer *>( layer );
       QgsVectorDataProvider *dprovider = vlayer->dataProvider();
       QString addFeatureText;
+      bool addFeatureCheckable = true;
 
       bool isEditable = vlayer->isEditable();
       bool layerHasSelection = vlayer->selectedFeatureCount() > 0;
@@ -15455,6 +15471,7 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         {
           mActionAddFeature->setIcon( QgsApplication::getThemeIcon( QStringLiteral( "/mActionNewTableRow.svg" ) ) );
           addFeatureText = tr( "Add Record" );
+          addFeatureCheckable = false;
           mActionAddRing->setEnabled( false );
           mActionFillRing->setEnabled( false );
           mActionReshapeFeatures->setEnabled( false );
@@ -15468,6 +15485,8 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         mActionOpenFieldCalc->setEnabled( true );
         mActionAddFeature->setText( addFeatureText );
         mActionAddFeature->setToolTip( addFeatureText );
+        mActionAddFeature->setCheckable( addFeatureCheckable );
+        mActionAddFeature->setChecked( addFeatureCheckable && mMapCanvas->mapTool() == mMapTools->mapTool( QgsAppMapTools::AddFeature ) );
         QgsGui::shortcutsManager()->unregisterAction( mActionAddFeature );
         if ( !mActionAddFeature->text().isEmpty() ) // The text will be empty on unknown geometry type -> in this case do not create a shortcut
           QgsGui::shortcutsManager()->registerAction( mActionAddFeature, mActionAddFeature->shortcut().toString() );

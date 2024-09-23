@@ -225,6 +225,19 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         self.assertEqual(res.asExpression(), 'CASE WHEN "luminosity" IS -15 THEN \'#c8d2d5\' WHEN "luminosity" IS -14 THEN \'#cbd5d8\' WHEN "luminosity" IS -13 THEN \'#cfd7da\' WHEN "luminosity" IS -12 THEN \'#d2dadd\' WHEN "luminosity" IS -11 THEN \'#d5dde0\' WHEN "luminosity" IS -10 THEN \'#d9e0e2\' WHEN "luminosity" IS -9 THEN \'#dce3e5\' WHEN "luminosity" IS -8 THEN \'#e0e6e7\' WHEN "luminosity" IS -7 THEN \'#e3e8ea\' WHEN "luminosity" IS -6 THEN \'#e7ebed\' WHEN "luminosity" IS -5 THEN \'#eaeeef\' WHEN "luminosity" IS -4 THEN \'#eef1f2\' WHEN "luminosity" IS -3 THEN \'#f1f4f5\' WHEN "luminosity" IS -2 THEN \'#f5f7f7\' WHEN "luminosity" IS -1 THEN \'#f8f9fa\' ELSE \'#fcfcfc\' END')
         self.assertTrue(qgsDoubleNear(default_number, 0.0))
 
+        res, default_color, default_number = QgsMapBoxGlStyleConverter.parseMatchList([
+            "match",
+            [
+                "get",
+                "class"
+            ],
+            "scree",
+            "rgba(0, 0, 0, 1)",
+            "hsl(35, 86%, 38%)"
+        ], QgsMapBoxGlStyleConverter.PropertyType.Color, conversion_context, 2.5, 200)
+        self.assertEqual(res.asExpression(), '''CASE WHEN "class" IS 'scree' THEN '#000000' ELSE '#b26e0e' END''')
+        self.assertTrue(qgsDoubleNear(default_number, 0.0))
+
     def testParseStepList(self):
         conversion_context = QgsMapBoxGlStyleConversionContext()
         res, default_color, default_number = QgsMapBoxGlStyleConverter.parseStepList([
@@ -276,6 +289,31 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         self.assertEqual(res.asExpression(),
                          'CASE WHEN @vector_tile_zoom >= 10 AND @vector_tile_zoom <= 15 THEN (scale_linear(@vector_tile_zoom,10,15,0.1,0.3)) * 2.5 WHEN @vector_tile_zoom > 15 AND @vector_tile_zoom <= 18 THEN (scale_linear(@vector_tile_zoom,15,18,0.3,0.6)) * 2.5 WHEN @vector_tile_zoom > 18 THEN 1.5 END')
         self.assertEqual(default_number, 0.25)
+
+        # nested match list
+        res, default_color, default_number = QgsMapBoxGlStyleConverter.parseValueList([
+            "match",
+            ["get", "is_route"],
+            [5, 10],
+            "hsl(16,91%,80%)",
+            [6, 7, 8],
+            "hsl(55,91%,80%)",
+            [
+                "match",
+                ["get", "class"],
+                ["motorway", "trunk", "motorway_construction", "trunk_construction"],
+                "hsl(41,93%,73%)",
+                [
+                    "rail", "rail_construction", "path", "path_construction",
+                    "footway", "footway_construction", "track", "track_construction",
+                    "trail", "trail_construction"
+                ],
+                ["match", ["get", "subclass"], "covered_bridge", "rgb(255,255,255)", "rgb(238,238,240)"],
+                "rgba(255,255,255,1)"
+            ]
+        ], QgsMapBoxGlStyleConverter.PropertyType.Color, conversion_context, 2.5, 200)
+        self.assertEqual(res.asExpression(),
+                         '''CASE WHEN "is_route" IN (5,10) THEN '#fab69e' WHEN "is_route" IN (6,7,8) THEN '#faf39e' ELSE CASE WHEN "class" IN ('motorway','trunk','motorway_construction','trunk_construction') THEN '#fad27a' WHEN "class" IN ('rail','rail_construction','path','path_construction','footway','footway_construction','track','track_construction','trail','trail_construction') THEN CASE WHEN "subclass" IS 'covered_bridge' THEN '#ffffff' ELSE '#eeeef0' END ELSE '#ffffff' END END''')
 
     def testInterpolateByZoom(self):
         conversion_context = QgsMapBoxGlStyleConversionContext()
@@ -685,7 +723,6 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         self.assertTrue(labeling.labelSettings().isExpression)
 
         # text-transform
-
         style = {
             "layout": {
                 "text-field": "name_en",
@@ -747,6 +784,60 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         self.assertEqual(labeling.labelSettings().fieldName,
                          '''lower(concat(concat("name_en",' - ',"name_fr"),"bar"))''')
         self.assertTrue(labeling.labelSettings().isExpression)
+
+    def testHaloMaxSize(self):
+        # text-halo-width is max 1/4 of font-size
+        # https://docs.mapbox.com/style-spec/reference/layers/#paint-symbol-text-halo-width
+        context = QgsMapBoxGlStyleConversionContext()
+
+        # the pixel based text buffers appear larger when rendered on the web - so automatically scale
+        # them up when converting to a QGIS style
+        BUFFER_SIZE_SCALE = 2.0
+
+        # (text_size, halo_size, expected_size, expected_data_defined)
+        data = (
+            (16, 3, 3, None),
+            (16, 5, 4, None),
+            (12, ["get", "some_field_1"], None, 'min(24/4, "some_field_1")'),
+            (["get", "some_field_2"], 4, None, f'min("some_field_2"*{BUFFER_SIZE_SCALE:.0f}/4, {BUFFER_SIZE_SCALE * 4:.0f})'),
+            (["get", "some_field_3"], ["get", "some_field_4"], None, f'min("some_field_3"*{BUFFER_SIZE_SCALE:.0f}/4, "some_field_4")'),
+        )
+
+        for (text_size, halo_size, expected_size, expected_data_defined) in data:
+            style = {
+                "layout": {
+                    "text-field": "name_en",
+                    "text-font": [
+                        "Open Sans Semibold",
+                        "Arial Unicode MS Bold"
+                    ],
+                    "text-transform": "uppercase",
+                    "text-max-width": 8,
+                    "text-anchor": "top",
+                    "text-size": text_size,
+                    "icon-size": 1
+                },
+                "type": "symbol",
+                "id": "poi_label",
+                "paint": {
+                    "text-color": "#666",
+                    "text-halo-width": halo_size,
+                    "text-halo-color": "rgba(255,255,255,0.95)",
+                    "text-halo-blur": 1
+                },
+                "source-layer": "poi_label"
+            }
+            renderer, has_renderer, labeling, has_labeling = QgsMapBoxGlStyleConverter.parseSymbolLayer(style, context)
+            self.assertFalse(has_renderer)
+            self.assertTrue(has_labeling)
+            if expected_size:
+                f = labeling.labelSettings().format()
+                buffer = f.buffer()
+                self.assertEqual(buffer.size(), expected_size * BUFFER_SIZE_SCALE)
+            if expected_data_defined:
+                ls = labeling.labelSettings()
+                dd = ls.dataDefinedProperties()
+                self.assertEqual(dd.property(QgsPalLayerSettings.Property.BufferSize).asExpression(), expected_data_defined)
 
     def testFontFamilyReplacement(self):
         context = QgsMapBoxGlStyleConversionContext()
@@ -830,6 +921,70 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         self.assertFalse(has_labeling)
         size = renderer.symbol().symbolLayers()[0].size()
         self.assertEqual(size, 4)
+
+        image = QImage(QSize(1, 1), QImage.Format.Format_ARGB32)
+        context.setSprites(image, {"foo": {"x": 0, "y": 0, "width": 2, "height": 2, "pixelRatio": 1}})
+        style = {
+            "id": "landcover_pt",
+            "type": "symbol",
+            "source": "base_v1.0.0",
+            "source-layer": "landcover_pt",
+            "minzoom": 14.0,
+            "layout": {
+                "icon-size": ["interpolate", ["exponential", 1.6], ["zoom"], 14, 0.2, 18, 1],
+                "text-font": [],
+                "icon-image": "{foo}",
+                "visibility": "visible",
+                "icon-allow-overlap": False,
+                "icon-pitch-alignment": "map",
+                "icon-ignore-placement": False,
+                "icon-rotation-alignment": "map"
+            },
+            "paint": {"icon-opacity": {"stops": [[14, 0.4], [18, 0.6]]}}
+        }
+        renderer, has_renderer, labeling, has_labeling = QgsMapBoxGlStyleConverter.parseSymbolLayer(style, context)
+        self.assertTrue(has_renderer)
+        dd_properties = renderer.symbol().symbolLayers()[0].dataDefinedProperties()
+        self.assertEqual(dd_properties.property(QgsSymbolLayer.Property.PropertyWidth).asExpression(),
+                         '''with_variable('marker_size',CASE WHEN "foo" = 'foo' THEN 2 END,((0.2) + ((1.6^(@vector_tile_zoom - 14) - 1) / (1.6^(18 - 14) - 1)) * ((1) - (0.2)))*@marker_size)''')
+
+        image = QImage(QSize(1, 1), QImage.Format.Format_ARGB32)
+        context.setSprites(image, {"arrow_blue": {"x": 0, "y": 0, "width": 2, "height": 2, "pixelRatio": 1}})
+        style = {
+            "id": "contour_line_pt_100",
+            "type": "symbol",
+            "source": "base_v1.0.0",
+            "source-layer": "contour_line_pt",
+            "minzoom": 13.0,
+            "layout": {
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 13, 0.6, 14, 0.7, 16, 0.9],
+                "text-font": ["Frutiger Neue Italic"],
+                "text-size": ["interpolate", ["exponential", 2], ["zoom"], 13, 10, 14, 10.5, 16, 14],
+                "icon-image": ["case", ["has", "lake_depth"], "arrow_blue", ""],
+                "text-field": ["case", ["has", "lake_depth"], ["get", "lake_depth"], ["get", "ele"]],
+                "visibility": "visible",
+                "icon-anchor": "center",
+                "icon-offset": ["case", ["has", "lake_depth"], ["literal", [-20, 0]], ["literal", [0, 0]]],
+                "icon-rotate": ["get", "direction"],
+                "text-anchor": "center",
+                "text-rotate": ["get", "direction"],
+                "text-padding": {"stops": [[13, 10], [16, 2]]},
+                "symbol-spacing": 250,
+                "text-max-angle": 35,
+                "icon-keep-upright": True,
+                "text-keep-upright": True,
+                "symbol-avoid-edges": True,
+                "text-letter-spacing": 0.1,
+                "icon-pitch-alignment": "map",
+                "icon-rotation-alignment": "map",
+                "text-rotation-alignment": "map"
+            }
+        }
+        renderer, has_renderer, labeling, has_labeling = QgsMapBoxGlStyleConverter.parseSymbolLayer(style, context)
+        self.assertTrue(has_renderer)
+        dd_properties = renderer.symbol().symbolLayers()[0].dataDefinedProperties()
+        self.assertEqual(dd_properties.property(QgsSymbolLayer.Property.PropertyWidth).asExpression(),
+                         '''with_variable('marker_size',CASE WHEN "lake_depth" IS NOT NULL THEN 2 ELSE 2 END,(CASE WHEN @vector_tile_zoom >= 13 AND @vector_tile_zoom <= 14 THEN scale_linear(@vector_tile_zoom,13,14,0.6,0.7) WHEN @vector_tile_zoom > 14 AND @vector_tile_zoom <= 16 THEN scale_linear(@vector_tile_zoom,14,16,0.7,0.9) WHEN @vector_tile_zoom > 16 THEN 0.9 END)*@marker_size)''')
 
     def testScaledLabelShieldIcon(self):
         """ Test icon-size property for label shields that depends on a data attribute """
@@ -1070,6 +1225,72 @@ class TestQgsMapBoxGlStyleConverter(QgisTestCase):
         dd_props = rendererStyle.symbol().symbolLayers()[0].dataDefinedProperties()
         prop = dd_props.property(QgsSymbolLayer.Property.PropertyFile)
         self.assertTrue(prop.isActive())
+
+    def testParseLineOpactity(self):
+        conversion_context = QgsMapBoxGlStyleConversionContext()
+        style = {
+            "id": "contour_line",
+            "type": "line",
+            "source": "base_v1.0.0",
+            "source-layer": "contour_line",
+            "minzoom": 11.0,
+            "layout": {"visibility": "visible"},
+            "paint": {
+                "line-blur": 0.25,
+                "line-color": ["match", ["get", "class"], "scree", "rgba(0, 0, 0, 1)", "hsl(35, 86%, 38%)"],
+                "line-width": [
+                    "interpolate",
+                    ["exponential", 1],
+                    ["zoom"],
+                    11,
+                    ["case", ["==", ["%", ["to-number", ["get", "ele"]], 100], 0], 0.75, 0],
+                    12,
+                    ["case", ["==", ["%", ["to-number", ["get", "ele"]], 100], 0], 1, 0],
+                    14,
+                    [
+                        "case",
+                        ["==", ["%", ["to-number", ["get", "ele"]], 100], 0],
+                        1.5,
+                        ["case", ["==", ["%", ["to-number", ["get", "ele"]], 20], 0], 0.75, 0]
+                    ],
+                    15,
+                    [
+                        "case",
+                        ["==", ["%", ["to-number", ["get", "ele"]], 100], 0],
+                        2,
+                        ["case", ["==", ["%", ["to-number", ["get", "ele"]], 20], 0], 1, 0]
+                    ],
+                    18,
+                    [
+                        "case",
+                        ["==", ["%", ["to-number", ["get", "ele"]], 100], 0],
+                        3,
+                        ["case", ["==", ["%", ["to-number", ["get", "ele"]], 10], 0], 1.5, 0]
+                    ]
+                ],
+                "line-opacity": [
+                    "interpolate",
+                    ["exponential", 1],
+                    ["zoom"],
+                    11,
+                    ["match", ["get", "class"], "scree", 0.2, 0.3],
+                    16,
+                    ["match", ["get", "class"], "scree", 0.2, 0.3]
+                ]
+            },
+            "filter": ["all", ["!in", "class", "rock", "ice", "water"]]
+        }
+
+        has_renderer, rendererStyle = QgsMapBoxGlStyleConverter.parseLineLayer(style, conversion_context)
+        self.assertTrue(has_renderer)
+        self.assertEqual(rendererStyle.geometryType(), QgsWkbTypes.GeometryType.LineGeometry)
+        symbol = rendererStyle.symbol()
+        dd_properties_layer = symbol.symbolLayers()[0].dataDefinedProperties()
+        self.assertEqual(dd_properties_layer.property(QgsSymbolLayer.Property.StrokeColor).asExpression(),
+                         '''CASE WHEN "class" IS 'scree' THEN '#000000' ELSE '#b26e0e' END''')
+        dd_properties = symbol.dataDefinedProperties()
+        self.assertEqual(dd_properties.property(QgsSymbol.Property.Opacity).asExpression(),
+                         '''(CASE WHEN ("class" = 'scree') THEN 0.2 ELSE 0.3 END) * 100''')
 
     def testLabelWithLiteral(self):
         context = QgsMapBoxGlStyleConversionContext()
