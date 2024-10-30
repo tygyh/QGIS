@@ -41,7 +41,6 @@ typedef Qt3DCore::QGeometry Qt3DQGeometry;
 #include <Qt3DRender/QGeometryRenderer>
 #include <Qt3DExtras/QPlaneGeometry>
 #include <Qt3DCore/QTransform>
-#include <Qt3DRender/QMaterial>
 #include <Qt3DExtras/QDiffuseSpecularMaterial>
 #include <Qt3DExtras/QTextureMaterial>
 #include <Qt3DRender/QTextureImage>
@@ -64,8 +63,8 @@ typedef Qt3DCore::QGeometry Qt3DQGeometry;
 
 #include "qgsbillboardgeometry.h"
 #include "qgsterraintileentity_p.h"
-#include "qgsterrainentity_p.h"
-#include "qgschunknode_p.h"
+#include "qgsterrainentity.h"
+#include "qgschunknode.h"
 #include "qgsterraingenerator.h"
 #include "qgs3dmapsettings.h"
 #include "qgsflatterraingenerator.h"
@@ -76,6 +75,7 @@ typedef Qt3DCore::QGeometry Qt3DQGeometry;
 #include "qgsterraintextureimage_p.h"
 #include "qgsterraintexturegenerator_p.h"
 #include "qgsmeshterraingenerator.h"
+#include "qgsmeshterraintileloader_p.h"
 #include "qgsvectorlayer.h"
 #include "qgsabstract3drenderer.h"
 #include "qgsvectorlayer3drenderer.h"

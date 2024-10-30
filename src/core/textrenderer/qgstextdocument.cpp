@@ -18,6 +18,7 @@
 #include "qgsstringutils.h"
 #include "qgstextblock.h"
 #include "qgstextfragment.h"
+#include "qgstextformat.h"
 
 #include <QTextDocument>
 #include <QTextBlock>
@@ -73,12 +74,12 @@ QgsTextDocument QgsTextDocument::fromHtml( const QStringList &lines )
     // handle these markers as tab characters in the parsed HTML document.
     line.replace( QString( '\t' ), QStringLiteral( TAB_REPLACEMENT_MARKER ) );
 
-    // cheat a little. Qt css requires word-spacing to have the "px" suffix. But we don't treat word spacing
+    // cheat a little. Qt css requires word-spacing and line-height to have the "px" suffix. But we don't treat word spacing/line height
     // as pixels, because that doesn't scale well with different dpi render targets! So let's instead use just instead treat the suffix as
     // optional, and ignore ANY unit suffix the user has put, and then replace it with "px" so that Qt's css parsing engine can process it
     // correctly...
-    const thread_local QRegularExpression sRxWordSpacingFix( QStringLiteral( "word-spacing:\\s*(-?\\d+(?:\\.\\d+)?)([a-zA-Z]*)" ) );
-    line.replace( sRxWordSpacingFix, QStringLiteral( "word-spacing: \\1px" ) );
+    const thread_local QRegularExpression sRxPixelsToPtFix( QStringLiteral( "(word-spacing|line-height):\\s*(-?\\d+(?:\\.\\d+)?)(?![%\\d])([a-zA-Z]*)" ) );
+    line.replace( sRxPixelsToPtFix, QStringLiteral( "\\1: \\2px" ) );
 
     sourceDoc.setHtml( line );
 
@@ -244,6 +245,22 @@ QgsTextDocument QgsTextDocument::fromHtml( const QStringList &lines )
   return document;
 }
 
+QgsTextDocument QgsTextDocument::fromTextAndFormat( const QStringList &lines, const QgsTextFormat &format )
+{
+  QgsTextDocument doc;
+  if ( !format.allowHtmlFormatting() || lines.isEmpty() )
+  {
+    doc = QgsTextDocument::fromPlainText( lines );
+  }
+  else
+  {
+    doc = QgsTextDocument::fromHtml( lines );
+  }
+  if ( doc.size() > 0 )
+    doc.applyCapitalization( format.capitalization() );
+  return doc;
+}
+
 void QgsTextDocument::append( const QgsTextBlock &block )
 {
   mBlocks.append( block );
@@ -252,6 +269,16 @@ void QgsTextDocument::append( const QgsTextBlock &block )
 void QgsTextDocument::append( QgsTextBlock &&block )
 {
   mBlocks.push_back( block );
+}
+
+void QgsTextDocument::insert( int index, const QgsTextBlock &block )
+{
+  mBlocks.insert( index, block );
+}
+
+void QgsTextDocument::insert( int index, QgsTextBlock &&block )
+{
+  mBlocks.insert( index, block );
 }
 
 void QgsTextDocument::reserve( int count )

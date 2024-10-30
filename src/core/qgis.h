@@ -399,8 +399,8 @@ class CORE_EXPORT Qgis
      * Authorisation to run Python Embedded in projects
      * \since QGIS 3.40
      */
-    enum class PythonEmbeddedMode : int
-    {
+    enum class PythonEmbeddedMode SIP_MONKEYPATCH_SCOPEENUM_UNNEST( Qgis, PythonMacroMode ) : int
+      {
       Never = 0, //!< Python embedded never run
       Ask = 1, //!< User is prompt before running
       SessionOnly = 2, //!< Only during this session
@@ -2585,6 +2585,7 @@ class CORE_EXPORT Qgis
       SkipSymbolRendering      = 0x40000, //!< Disable symbol rendering while still drawing labels if enabled \since QGIS 3.24
       RecordProfile            = 0x80000, //!< Enable run-time profiling while rendering \since QGIS 3.34
       AlwaysUseGlobalMasks     = 0x100000, //!< When applying clipping paths for selective masking, always use global ("entire map") paths, instead of calculating local clipping paths per rendered feature. This results in considerably more complex vector exports in all current Qt versions. This flag only applies to vector map exports. \since QGIS 3.38
+      DisableSymbolClippingToExtent = 0x200000, //!< Force symbol clipping to map extent to be disabled in all situations. This will result in slower rendering, and should only be used in situations where the feature clipping is always undesirable. \since QGIS 3.40
     };
     //! Render context flags
     Q_DECLARE_FLAGS( RenderContextFlags, RenderContextFlag ) SIP_MONKEYPATCH_FLAGS_UNNEST( QgsRenderContext, Flags )
@@ -2623,6 +2624,7 @@ class CORE_EXPORT Qgis
       {
       AlwaysOutlines SIP_MONKEYPATCH_COMPAT_NAME( TextFormatAlwaysOutlines ), //!< Always render text using path objects (AKA outlines/curves). This setting guarantees the best quality rendering, even when using a raster paint surface (where sub-pixel path based text rendering is superior to sub-pixel text-based rendering). The downside is that text is converted to paths only, so users cannot open created vector outputs for post-processing in other applications and retain text editability.  This setting also guarantees complete compatibility with the full range of formatting options available through QgsTextRenderer and QgsTextFormat, some of which may not be possible to reproduce when using a vector-based paint surface and TextFormatAlwaysText mode. A final benefit to this setting is that vector exports created using text as outlines do not require all users to have the original fonts installed in order to display the text in its original style.
       AlwaysText SIP_MONKEYPATCH_COMPAT_NAME( TextFormatAlwaysText ), //!< Always render text as text objects. While this mode preserves text objects as text for post-processing in external vector editing applications, it can result in rendering artifacts or poor quality rendering, depending on the text format settings. Even with raster based paint devices, TextFormatAlwaysText can result in inferior rendering quality to TextFormatAlwaysOutlines. When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform).
+      PreferText, //!< Render text as text objects, unless doing so results in rendering artifacts or poor quality rendering (depending on text format settings). When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform). \since QGIS 3.40
     };
     Q_ENUM( TextRenderFormat )
 
@@ -3191,6 +3193,25 @@ class CORE_EXPORT Qgis
     Q_ENUM( RendererUsage )
 
     /**
+     * Flags controlling behavior of map canvases.
+     *
+     * \since QGIS 3.40
+     */
+    enum class MapCanvasFlag : int SIP_ENUM_BASETYPE( IntFlag )
+    {
+      ShowMainAnnotationLayer = 1 << 0, //!< The project's main annotation layer should be rendered in the canvas
+    };
+    Q_ENUM( MapCanvasFlag )
+
+    /**
+     * Flags controlling behavior of map canvases.
+     *
+     * \since QGIS 3.40
+     */
+    Q_DECLARE_FLAGS( MapCanvasFlags, MapCanvasFlag )
+    Q_FLAG( MapCanvasFlags )
+
+    /**
      * Synchronization of 2D map canvas and 3D view
      *
      * \since QGIS 3.26
@@ -3303,6 +3324,7 @@ class CORE_EXPORT Qgis
       SkipGenericModelLogging SIP_MONKEYPATCH_COMPAT_NAME( FlagSkipGenericModelLogging ) = 1 << 12, //!< When running as part of a model, the generic algorithm setup and results logging should be skipped
       NotAvailableInStandaloneTool SIP_MONKEYPATCH_COMPAT_NAME( FlagNotAvailableInStandaloneTool ) = 1 << 13, //!< Algorithm should not be available from the standalone "qgis_process" tool. Used to flag algorithms which make no sense outside of the QGIS application, such as "select by..." style algorithms.
       RequiresProject SIP_MONKEYPATCH_COMPAT_NAME( FlagRequiresProject ) = 1 << 14, //!< The algorithm requires that a valid QgsProject is available from the processing context in order to execute
+      SecurityRisk = 1 << 15, //!< The algorithm represents a potential security risk if executed with untrusted inputs. \since QGIS 3.40
       Deprecated SIP_MONKEYPATCH_COMPAT_NAME( FlagDeprecated ) = HideFromToolbox | HideFromModeler, //!< Algorithm is deprecated
     };
     Q_ENUM( ProcessingAlgorithmFlag );
@@ -4661,7 +4683,7 @@ class CORE_EXPORT Qgis
       ChainsBritishSears1922Truncated, //!< British chains (Sears 1922 truncated) \since QGIS 3.40
       ChainsBritishSears1922, //!< British chains (Sears 1922) \since QGIS 3.40
       ChainsClarkes, //!< Clarke's chains \since QGIS 3.40
-      ChainsUSSurvey, //!< US Survery chains \since QGIS 3.40
+      ChainsUSSurvey, //!< US Survey chains \since QGIS 3.40
       FeetBritish1865, //!< British feet (1865) \since QGIS 3.40
       FeetBritish1936, //!< British feet (1936) \since QGIS 3.40
       FeetBritishBenoit1895A, //!< British feet (Benoit 1895 A) \since QGIS 3.40
@@ -4674,14 +4696,14 @@ class CORE_EXPORT Qgis
       FeetIndian1937, //!< Indian feet (1937) \since QGIS 3.40
       FeetIndian1962, //!< Indian feet (1962) \since QGIS 3.40
       FeetIndian1975, //!< Indian feet (1975) \since QGIS 3.40
-      FeetUSSurvey, //!< US Survery feet \since QGIS 3.40
+      FeetUSSurvey, //!< US Survey feet \since QGIS 3.40
       LinksInternational, //!< International links \since QGIS 3.40
       LinksBritishBenoit1895A, //!< British links (Benoit 1895 A) \since QGIS 3.40
       LinksBritishBenoit1895B, //!< British links (Benoit 1895 B) \since QGIS 3.40
       LinksBritishSears1922Truncated, //!< British links (Sears 1922 truncated) \since QGIS 3.40
       LinksBritishSears1922, //!< British links (Sears 1922) \since QGIS 3.40
       LinksClarkes, //!< Clarke's links \since QGIS 3.40
-      LinksUSSurvey, //!< US Survery links \since QGIS 3.40
+      LinksUSSurvey, //!< US Survey links \since QGIS 3.40
       YardsBritishBenoit1895A, //!< British yards (Benoit 1895 A) \since QGIS 3.40
       YardsBritishBenoit1895B, //!< British yards (Benoit 1895 B) \since QGIS 3.40
       YardsBritishSears1922Truncated, //!< British yards (Sears 1922 truncated) \since QGIS 3.40
@@ -4691,7 +4713,7 @@ class CORE_EXPORT Qgis
       YardsIndian1937, //!< Indian yards (1937) \since QGIS 3.40
       YardsIndian1962, //!< Indian yards (1962) \since QGIS 3.40
       YardsIndian1975, //!< Indian yards (1975) \since QGIS 3.40
-      MilesUSSurvey, //!< US Survery miles \since QGIS 3.40
+      MilesUSSurvey, //!< US Survey miles \since QGIS 3.40
       Fathoms, //!< Fathoms \since QGIS 3.40
       MetersGermanLegal, //!< German legal meter \since QGIS 3.40
       Unknown SIP_MONKEYPATCH_COMPAT_NAME( DistanceUnknownUnit ), //!< Unknown distance unit
@@ -4875,6 +4897,19 @@ class CORE_EXPORT Qgis
     };
     Q_ENUM( PictureFormat )
 
+    /**
+     * Scale calculation logic.
+     *
+     * \since QGIS 3.40
+     */
+    enum class ScaleCalculationMethod : int
+    {
+      HorizontalTop = 0, //!< Calculate horizontally, across top of map
+      HorizontalMiddle, //!< Calculate horizontally, across midle of map
+      HorizontalBottom, //!< Calculate horizontally, across bottom of map
+      HorizontalAverage, //!< Calculate horizontally, using the average of the top, middle and bottom scales
+    };
+    Q_ENUM( ScaleCalculationMethod )
 
     /**
      * Scalebar alignment.
@@ -5567,8 +5602,10 @@ class CORE_EXPORT Qgis
      * Fudge factor used to compare two scales. The code is often going from scale to scale
      *  denominator. So it looses precision and, when a limit is inclusive, can lead to errors.
      *  To avoid that, use this factor instead of using <= or >=.
+     *
+     * \deprecated QGIS 3.40. No longer used by QGIS and will be removed in QGIS 4.0.
      */
-    static const double SCALE_PRECISION;
+    Q_DECL_DEPRECATED static const double SCALE_PRECISION;
 
     /**
      * Default Z coordinate value.
@@ -5723,6 +5760,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::DataItemProviderCapabilities )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorRenderingSimplificationFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::DataProviderReadFlags )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::VectorProviderCapabilities )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::MapCanvasFlags )
 
 // hack to workaround warnings when casting void pointers
 // retrieved from QLibrary::resolve to function pointers.

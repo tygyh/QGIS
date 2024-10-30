@@ -350,7 +350,7 @@ void QgsApplication::init( QString profileFolder )
     {
       if ( sPrefixPath()->isNull() )
       {
-#if defined(Q_OS_MACX) || defined(Q_OS_WIN)
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
         setPrefixPath( applicationDirPath(), true );
 #elif defined(ANDROID)
         // this is "/data/data/org.qgis.qgis" in android
@@ -428,14 +428,14 @@ void QgsApplication::init( QString profileFolder )
   // append local user-writable folder as a proj search path
   QStringList currentProjSearchPaths = QgsProjUtils::searchPaths();
   currentProjSearchPaths.append( qgisSettingsDirPath() + QStringLiteral( "proj" ) );
-#ifdef Q_OS_MACX
+#ifdef Q_OS_MACOS
   // append bundled proj lib for MacOS
   QString projLib( QDir::cleanPath( pkgDataPath().append( "/proj" ) ) );
   if ( QFile::exists( projLib ) )
   {
     currentProjSearchPaths.append( projLib );
   }
-#endif // Q_OS_MACX
+#endif // Q_OS_MACOS
 
   char **newPaths = new char *[currentProjSearchPaths.length()];
   for ( int i = 0; i < currentProjSearchPaths.count(); ++i )
@@ -1007,7 +1007,7 @@ QString QgsApplication::resolvePkgPath()
     prefixPath = dir.absolutePath();
 #else
 
-#if defined(Q_OS_MACX)
+#if defined(Q_OS_MACOS)
     prefixPath = appPath;
 #elif defined(Q_OS_WIN)
     prefixPath = appPath;
@@ -1560,7 +1560,7 @@ void QgsApplication::initQgis()
   ( void )QgsApplication::dataItemProviderRegistry();
 
   // create project instance if doesn't exist
-  QgsProject::instance();
+  QgsProject::instance(); // skip-keyword-check
 
   // Setup authentication manager for lazy initialization
   authManager()->setup( pluginPath(), qgisAuthDatabaseUri() );
@@ -1617,7 +1617,7 @@ void QgsApplication::exitQgis()
 
   // avoid creating instance just to delete it!
   if ( QgsProject::sProject )
-    delete QgsProject::instance();
+    delete QgsProject::instance(); // skip-keyword-check
 
   //Ensure that providers/layers which called deleteLater on objects as part of their cleanup
   //result in fully deleted objects before we do the provider registry cleanup.

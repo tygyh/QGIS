@@ -16,12 +16,12 @@
 #include "qgsdemterraintileloader_p.h"
 
 #include "qgs3dmapsettings.h"
-#include "qgschunknode_p.h"
+#include "qgschunknode.h"
 #include "qgsdemterraingenerator.h"
 #include "qgsdemterraintilegeometry_p.h"
 #include "qgseventtracing.h"
 #include "qgsonlineterraingenerator.h"
-#include "qgsterrainentity_p.h"
+#include "qgsterrainentity.h"
 #include "qgsterraintexturegenerator_p.h"
 #include "qgsterraintileentity_p.h"
 #include "qgsterraingenerator.h"
@@ -123,7 +123,8 @@ Qt3DCore::QEntity *QgsDemTerrainTileLoader::createEntity( Qt3DCore::QEntity *par
   transform->setScale( side );
   transform->setTranslation( QVector3D( x0 + half, 0, - ( y0 + half ) ) );
 
-  mNode->setExactBbox( QgsAABB( x0, zMin * map->terrainVerticalScale(), -y0, x0 + side, zMax * map->terrainVerticalScale(), -( y0 + side ) ) );
+  mNode->setExactBox3D( QgsBox3D( extent.xMinimum(), extent.yMinimum(), zMin * map->terrainVerticalScale(),
+                                  extent.xMinimum() + side, extent.yMinimum() + side, zMax * map->terrainVerticalScale() ) );
   mNode->updateParentBoundingBoxesRecursively();
 
   entity->setParent( parent );

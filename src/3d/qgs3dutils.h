@@ -143,7 +143,7 @@ class _3D_EXPORT Qgs3DUtils
     static QMatrix4x4 stringToMatrix4x4( const QString &str );
 
     //! Calculates (x,y,z) positions of (multi)point from the given feature
-    static void extractPointPositions( const QgsFeature &f, const Qgs3DRenderContext &context, Qgis::AltitudeClamping altClamp, QVector<QVector3D> &positions );
+    static void extractPointPositions( const QgsFeature &f, const Qgs3DRenderContext &context, const QgsVector3D &chunkOrigin, Qgis::AltitudeClamping altClamp, QVector<QVector3D> &positions );
 
     /**
      * Returns TRUE if bbox is completely outside the current viewing volume.
@@ -173,6 +173,12 @@ class _3D_EXPORT Qgs3DUtils
      * \since QGIS 3.12
      */
     static QgsAABB mapToWorldExtent( const QgsRectangle &extent, double zMin, double zMax, const QgsVector3D &mapOrigin );
+
+    /**
+     * Converts 3D box in map coordinates to AABB in world coordinates.
+     * \since QGIS 3.42
+     */
+    static QgsAABB mapToWorldExtent( const QgsBox3D &box3D, const QgsVector3D &mapOrigin );
 
     /**
      * Converts axis aligned bounding box in 3D world coordinates to extent in map coordinates
@@ -315,6 +321,16 @@ class _3D_EXPORT Qgs3DUtils
      * \since QGIS 3.40
      */
     static QByteArray addDefinesToShaderCode( const QByteArray &shaderCode, const QStringList &defines );
+
+    /**
+     * Removes some define macros from a shader source code.
+     *
+     * \param shaderCode shader code
+     * \param defines list of defines to remove
+     *
+     * \since QGIS 3.40
+     */
+    static QByteArray removeDefinesFromShaderCode( const QByteArray &shaderCode, const QStringList &defines );
 };
 
 #endif // QGS3DUTILS_H

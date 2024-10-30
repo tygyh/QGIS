@@ -278,7 +278,7 @@ The development version
 
 
     enum class PythonEmbeddedMode
-    {
+      {
       Never,
       Ask,
       SessionOnly,
@@ -1530,6 +1530,7 @@ The development version
       SkipSymbolRendering,
       RecordProfile,
       AlwaysUseGlobalMasks,
+      DisableSymbolClippingToExtent,
     };
     typedef QFlags<Qgis::RenderContextFlag> RenderContextFlags;
 
@@ -1549,6 +1550,7 @@ The development version
       {
       AlwaysOutlines,
       AlwaysText,
+      PreferText,
     };
 
     enum class LabelingFlag
@@ -1856,6 +1858,14 @@ The development version
       Unknown,
     };
 
+    enum class MapCanvasFlag
+    {
+      ShowMainAnnotationLayer,
+    };
+
+    typedef QFlags<Qgis::MapCanvasFlag> MapCanvasFlags;
+
+
     enum class ViewSyncModeFlag
     {
       Sync3DTo2D,
@@ -1922,6 +1932,7 @@ The development version
       SkipGenericModelLogging,
       NotAvailableInStandaloneTool,
       RequiresProject,
+      SecurityRisk,
       Deprecated,
     };
 
@@ -2775,6 +2786,13 @@ The development version
       Unknown,
     };
 
+    enum class ScaleCalculationMethod
+    {
+      HorizontalTop,
+      HorizontalMiddle,
+      HorizontalBottom,
+      HorizontalAverage,
+    };
 
     enum class ScaleBarAlignment
       {
@@ -3161,7 +3179,7 @@ The development version
 
     static const double DEFAULT_HIGHLIGHT_MIN_WIDTH_MM;
 
-    static const double SCALE_PRECISION;
+ static const double SCALE_PRECISION;
 
     static const double DEFAULT_Z_COORDINATE;
 
@@ -3372,6 +3390,8 @@ QFlags<Qgis::VectorRenderingSimplificationFlag> operator|(Qgis::VectorRenderingS
 QFlags<Qgis::DataProviderReadFlag> operator|(Qgis::DataProviderReadFlag f1, QFlags<Qgis::DataProviderReadFlag> f2);
 
 QFlags<Qgis::VectorProviderCapability> operator|(Qgis::VectorProviderCapability f1, QFlags<Qgis::VectorProviderCapability> f2);
+
+QFlags<Qgis::MapCanvasFlag> operator|(Qgis::MapCanvasFlag f1, QFlags<Qgis::MapCanvasFlag> f2);
 
 
 

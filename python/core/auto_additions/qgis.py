@@ -718,12 +718,23 @@ Qgis.VectorLayerTypeFlag.__doc__ = """Vector layer type flags.
 Qgis.VectorLayerTypeFlag.baseClass = Qgis
 Qgis.VectorLayerTypeFlags.baseClass = Qgis
 VectorLayerTypeFlags = Qgis  # dirty hack since SIP seems to introduce the flags in module
+Qgis.PythonMacroMode = Qgis.PythonEmbeddedMode
 # monkey patching scoped based enum
-Qgis.PythonEmbeddedMode.Never.__doc__ = "Python embedded never run"
-Qgis.PythonEmbeddedMode.Ask.__doc__ = "User is prompt before running"
-Qgis.PythonEmbeddedMode.SessionOnly.__doc__ = "Only during this session"
-Qgis.PythonEmbeddedMode.Always.__doc__ = "Python embedded is always run"
-Qgis.PythonEmbeddedMode.NotForThisSession.__doc__ = "Python embedded will not be run for this session"
+Qgis.Never = Qgis.PythonEmbeddedMode.Never
+Qgis.Never.is_monkey_patched = True
+Qgis.Never.__doc__ = "Python embedded never run"
+Qgis.Ask = Qgis.PythonEmbeddedMode.Ask
+Qgis.Ask.is_monkey_patched = True
+Qgis.Ask.__doc__ = "User is prompt before running"
+Qgis.SessionOnly = Qgis.PythonEmbeddedMode.SessionOnly
+Qgis.SessionOnly.is_monkey_patched = True
+Qgis.SessionOnly.__doc__ = "Only during this session"
+Qgis.Always = Qgis.PythonEmbeddedMode.Always
+Qgis.Always.is_monkey_patched = True
+Qgis.Always.__doc__ = "Python embedded is always run"
+Qgis.NotForThisSession = Qgis.PythonEmbeddedMode.NotForThisSession
+Qgis.NotForThisSession.is_monkey_patched = True
+Qgis.NotForThisSession.__doc__ = "Python embedded will not be run for this session"
 Qgis.PythonEmbeddedMode.__doc__ = """Authorisation to run Python Embedded in projects
 
 .. versionadded:: 3.40
@@ -4713,6 +4724,9 @@ QgsRenderContext.RecordProfile.__doc__ = "Enable run-time profiling while render
 QgsRenderContext.AlwaysUseGlobalMasks = Qgis.RenderContextFlag.AlwaysUseGlobalMasks
 QgsRenderContext.AlwaysUseGlobalMasks.is_monkey_patched = True
 QgsRenderContext.AlwaysUseGlobalMasks.__doc__ = "When applying clipping paths for selective masking, always use global (\"entire map\") paths, instead of calculating local clipping paths per rendered feature. This results in considerably more complex vector exports in all current Qt versions. This flag only applies to vector map exports. \n.. versionadded:: 3.38"
+QgsRenderContext.DisableSymbolClippingToExtent = Qgis.RenderContextFlag.DisableSymbolClippingToExtent
+QgsRenderContext.DisableSymbolClippingToExtent.is_monkey_patched = True
+QgsRenderContext.DisableSymbolClippingToExtent.__doc__ = "Force symbol clipping to map extent to be disabled in all situations. This will result in slower rendering, and should only be used in situations where the feature clipping is always undesirable. \n.. versionadded:: 3.40"
 Qgis.RenderContextFlag.__doc__ = """Flags which affect rendering operations.
 
 .. versionadded:: 3.22
@@ -4753,6 +4767,10 @@ Qgis.RenderContextFlag.__doc__ = """Flags which affect rendering operations.
 
   .. versionadded:: 3.38
 
+* ``DisableSymbolClippingToExtent``: Force symbol clipping to map extent to be disabled in all situations. This will result in slower rendering, and should only be used in situations where the feature clipping is always undesirable.
+
+  .. versionadded:: 3.40
+
 
 """
 # --
@@ -4790,6 +4808,9 @@ QgsRenderContext.TextFormatAlwaysText = Qgis.TextRenderFormat.AlwaysText
 QgsRenderContext.TextRenderFormat.TextFormatAlwaysText = Qgis.TextRenderFormat.AlwaysText
 QgsRenderContext.TextFormatAlwaysText.is_monkey_patched = True
 QgsRenderContext.TextFormatAlwaysText.__doc__ = "Always render text as text objects. While this mode preserves text objects as text for post-processing in external vector editing applications, it can result in rendering artifacts or poor quality rendering, depending on the text format settings. Even with raster based paint devices, TextFormatAlwaysText can result in inferior rendering quality to TextFormatAlwaysOutlines. When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform)."
+QgsRenderContext.PreferText = Qgis.TextRenderFormat.PreferText
+QgsRenderContext.PreferText.is_monkey_patched = True
+QgsRenderContext.PreferText.__doc__ = "Render text as text objects, unless doing so results in rendering artifacts or poor quality rendering (depending on text format settings). When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform). \n.. versionadded:: 3.40"
 Qgis.TextRenderFormat.__doc__ = """Options for rendering text.
 
 .. versionadded:: 3.22
@@ -4801,6 +4822,10 @@ Qgis.TextRenderFormat.__doc__ = """Options for rendering text.
 * ``AlwaysText``: Always render text as text objects. While this mode preserves text objects as text for post-processing in external vector editing applications, it can result in rendering artifacts or poor quality rendering, depending on the text format settings. Even with raster based paint devices, TextFormatAlwaysText can result in inferior rendering quality to TextFormatAlwaysOutlines. When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform).
 
   Available as ``QgsRenderContext.TextFormatAlwaysText`` in older QGIS releases.
+
+* ``PreferText``: Render text as text objects, unless doing so results in rendering artifacts or poor quality rendering (depending on text format settings). When rendering using TextFormatAlwaysText to a vector based device (e.g. PDF or SVG), care must be taken to ensure that the required fonts are available to users when opening the created files, or default fallback fonts will be used to display the output instead. (Although PDF exports MAY automatically embed some fonts when possible, depending on the user's platform).
+
+  .. versionadded:: 3.40
 
 
 """
@@ -5893,6 +5918,19 @@ Qgis.RendererUsage.__doc__ = """Usage of the renderer.
 # --
 Qgis.RendererUsage.baseClass = Qgis
 # monkey patching scoped based enum
+Qgis.MapCanvasFlag.ShowMainAnnotationLayer.__doc__ = "The project's main annotation layer should be rendered in the canvas"
+Qgis.MapCanvasFlag.__doc__ = """Flags controlling behavior of map canvases.
+
+.. versionadded:: 3.40
+
+* ``ShowMainAnnotationLayer``: The project's main annotation layer should be rendered in the canvas
+
+"""
+# --
+Qgis.MapCanvasFlag.baseClass = Qgis
+Qgis.MapCanvasFlags.baseClass = Qgis
+MapCanvasFlags = Qgis  # dirty hack since SIP seems to introduce the flags in module
+# monkey patching scoped based enum
 Qgis.ViewSyncModeFlag.Sync3DTo2D.__doc__ = "Synchronize 3D view camera to the main map canvas extent"
 Qgis.ViewSyncModeFlag.Sync2DTo3D.__doc__ = "Update the 2D main canvas extent to include the viewed area from the 3D view"
 Qgis.ViewSyncModeFlag.__doc__ = """Synchronization of 2D map canvas and 3D view
@@ -6160,6 +6198,9 @@ QgsProcessingAlgorithm.FlagRequiresProject = Qgis.ProcessingAlgorithmFlag.Requir
 QgsProcessingAlgorithm.Flag.FlagRequiresProject = Qgis.ProcessingAlgorithmFlag.RequiresProject
 QgsProcessingAlgorithm.FlagRequiresProject.is_monkey_patched = True
 QgsProcessingAlgorithm.FlagRequiresProject.__doc__ = "The algorithm requires that a valid QgsProject is available from the processing context in order to execute"
+QgsProcessingAlgorithm.SecurityRisk = Qgis.ProcessingAlgorithmFlag.SecurityRisk
+QgsProcessingAlgorithm.SecurityRisk.is_monkey_patched = True
+QgsProcessingAlgorithm.SecurityRisk.__doc__ = "The algorithm represents a potential security risk if executed with untrusted inputs. \n.. versionadded:: 3.40"
 QgsProcessingAlgorithm.FlagDeprecated = Qgis.ProcessingAlgorithmFlag.Deprecated
 QgsProcessingAlgorithm.Flag.FlagDeprecated = Qgis.ProcessingAlgorithmFlag.Deprecated
 QgsProcessingAlgorithm.FlagDeprecated.is_monkey_patched = True
@@ -6227,6 +6268,10 @@ Qgis.ProcessingAlgorithmFlag.__doc__ = """Flags indicating how and when an algor
 * ``RequiresProject``: The algorithm requires that a valid QgsProject is available from the processing context in order to execute
 
   Available as ``QgsProcessingAlgorithm.FlagRequiresProject`` in older QGIS releases.
+
+* ``SecurityRisk``: The algorithm represents a potential security risk if executed with untrusted inputs.
+
+  .. versionadded:: 3.40
 
 * ``Deprecated``: Algorithm is deprecated
 
@@ -8590,7 +8635,7 @@ QgsUnitTypes.ChainsClarkes.is_monkey_patched = True
 QgsUnitTypes.ChainsClarkes.__doc__ = "Clarke's chains \n.. versionadded:: 3.40"
 QgsUnitTypes.ChainsUSSurvey = Qgis.DistanceUnit.ChainsUSSurvey
 QgsUnitTypes.ChainsUSSurvey.is_monkey_patched = True
-QgsUnitTypes.ChainsUSSurvey.__doc__ = "US Survery chains \n.. versionadded:: 3.40"
+QgsUnitTypes.ChainsUSSurvey.__doc__ = "US Survey chains \n.. versionadded:: 3.40"
 QgsUnitTypes.FeetBritish1865 = Qgis.DistanceUnit.FeetBritish1865
 QgsUnitTypes.FeetBritish1865.is_monkey_patched = True
 QgsUnitTypes.FeetBritish1865.__doc__ = "British feet (1865) \n.. versionadded:: 3.40"
@@ -8629,7 +8674,7 @@ QgsUnitTypes.FeetIndian1975.is_monkey_patched = True
 QgsUnitTypes.FeetIndian1975.__doc__ = "Indian feet (1975) \n.. versionadded:: 3.40"
 QgsUnitTypes.FeetUSSurvey = Qgis.DistanceUnit.FeetUSSurvey
 QgsUnitTypes.FeetUSSurvey.is_monkey_patched = True
-QgsUnitTypes.FeetUSSurvey.__doc__ = "US Survery feet \n.. versionadded:: 3.40"
+QgsUnitTypes.FeetUSSurvey.__doc__ = "US Survey feet \n.. versionadded:: 3.40"
 QgsUnitTypes.LinksInternational = Qgis.DistanceUnit.LinksInternational
 QgsUnitTypes.LinksInternational.is_monkey_patched = True
 QgsUnitTypes.LinksInternational.__doc__ = "International links \n.. versionadded:: 3.40"
@@ -8650,7 +8695,7 @@ QgsUnitTypes.LinksClarkes.is_monkey_patched = True
 QgsUnitTypes.LinksClarkes.__doc__ = "Clarke's links \n.. versionadded:: 3.40"
 QgsUnitTypes.LinksUSSurvey = Qgis.DistanceUnit.LinksUSSurvey
 QgsUnitTypes.LinksUSSurvey.is_monkey_patched = True
-QgsUnitTypes.LinksUSSurvey.__doc__ = "US Survery links \n.. versionadded:: 3.40"
+QgsUnitTypes.LinksUSSurvey.__doc__ = "US Survey links \n.. versionadded:: 3.40"
 QgsUnitTypes.YardsBritishBenoit1895A = Qgis.DistanceUnit.YardsBritishBenoit1895A
 QgsUnitTypes.YardsBritishBenoit1895A.is_monkey_patched = True
 QgsUnitTypes.YardsBritishBenoit1895A.__doc__ = "British yards (Benoit 1895 A) \n.. versionadded:: 3.40"
@@ -8680,7 +8725,7 @@ QgsUnitTypes.YardsIndian1975.is_monkey_patched = True
 QgsUnitTypes.YardsIndian1975.__doc__ = "Indian yards (1975) \n.. versionadded:: 3.40"
 QgsUnitTypes.MilesUSSurvey = Qgis.DistanceUnit.MilesUSSurvey
 QgsUnitTypes.MilesUSSurvey.is_monkey_patched = True
-QgsUnitTypes.MilesUSSurvey.__doc__ = "US Survery miles \n.. versionadded:: 3.40"
+QgsUnitTypes.MilesUSSurvey.__doc__ = "US Survey miles \n.. versionadded:: 3.40"
 QgsUnitTypes.Fathoms = Qgis.DistanceUnit.Fathoms
 QgsUnitTypes.Fathoms.is_monkey_patched = True
 QgsUnitTypes.Fathoms.__doc__ = "Fathoms \n.. versionadded:: 3.40"
@@ -8763,7 +8808,7 @@ Qgis.DistanceUnit.__doc__ = """Units of distance
 
   .. versionadded:: 3.40
 
-* ``ChainsUSSurvey``: US Survery chains
+* ``ChainsUSSurvey``: US Survey chains
 
   .. versionadded:: 3.40
 
@@ -8815,7 +8860,7 @@ Qgis.DistanceUnit.__doc__ = """Units of distance
 
   .. versionadded:: 3.40
 
-* ``FeetUSSurvey``: US Survery feet
+* ``FeetUSSurvey``: US Survey feet
 
   .. versionadded:: 3.40
 
@@ -8843,7 +8888,7 @@ Qgis.DistanceUnit.__doc__ = """Units of distance
 
   .. versionadded:: 3.40
 
-* ``LinksUSSurvey``: US Survery links
+* ``LinksUSSurvey``: US Survey links
 
   .. versionadded:: 3.40
 
@@ -8883,7 +8928,7 @@ Qgis.DistanceUnit.__doc__ = """Units of distance
 
   .. versionadded:: 3.40
 
-* ``MilesUSSurvey``: US Survery miles
+* ``MilesUSSurvey``: US Survey miles
 
   .. versionadded:: 3.40
 
@@ -9575,6 +9620,23 @@ Qgis.PictureFormat.__doc__ = """Picture formats.
 """
 # --
 Qgis.PictureFormat.baseClass = Qgis
+# monkey patching scoped based enum
+Qgis.ScaleCalculationMethod.HorizontalTop.__doc__ = "Calculate horizontally, across top of map"
+Qgis.ScaleCalculationMethod.HorizontalMiddle.__doc__ = "Calculate horizontally, across midle of map"
+Qgis.ScaleCalculationMethod.HorizontalBottom.__doc__ = "Calculate horizontally, across bottom of map"
+Qgis.ScaleCalculationMethod.HorizontalAverage.__doc__ = "Calculate horizontally, using the average of the top, middle and bottom scales"
+Qgis.ScaleCalculationMethod.__doc__ = """Scale calculation logic.
+
+.. versionadded:: 3.40
+
+* ``HorizontalTop``: Calculate horizontally, across top of map
+* ``HorizontalMiddle``: Calculate horizontally, across midle of map
+* ``HorizontalBottom``: Calculate horizontally, across bottom of map
+* ``HorizontalAverage``: Calculate horizontally, using the average of the top, middle and bottom scales
+
+"""
+# --
+Qgis.ScaleCalculationMethod.baseClass = Qgis
 QgsScaleBarSettings.Alignment = Qgis.ScaleBarAlignment
 # monkey patching scoped based enum
 QgsScaleBarSettings.AlignLeft = Qgis.ScaleBarAlignment.Left
@@ -10751,7 +10813,7 @@ Qgis.VectorRenderingSimplificationFlag.__or__ = lambda flag1, flag2: Qgis.Vector
 Qgis.DataProviderReadFlag.__or__ = lambda flag1, flag2: Qgis.DataProviderReadFlags(_force_int(flag1) | _force_int(flag2))
 Qgis.VectorProviderCapability.__or__ = lambda flag1, flag2: Qgis.VectorProviderCapabilities(_force_int(flag1) | _force_int(flag2))
 try:
-    Qgis.__attribute_docs__ = {'QGIS_DEV_VERSION': 'The development version', 'DEFAULT_SEARCH_RADIUS_MM': 'Identify search radius in mm', 'DEFAULT_MAPTOPIXEL_THRESHOLD': 'Default threshold between map coordinates and device coordinates for map2pixel simplification', 'DEFAULT_HIGHLIGHT_COLOR': 'Default highlight color.  The transparency is expected to only be applied to polygon\nfill. Lines and outlines are rendered opaque.', 'DEFAULT_HIGHLIGHT_BUFFER_MM': 'Default highlight buffer in mm.', 'DEFAULT_HIGHLIGHT_MIN_WIDTH_MM': 'Default highlight line/stroke minimum width in mm.', 'SCALE_PRECISION': 'Fudge factor used to compare two scales. The code is often going from scale to scale\ndenominator. So it looses precision and, when a limit is inclusive, can lead to errors.\nTo avoid that, use this factor instead of using <= or >=.', 'DEFAULT_Z_COORDINATE': 'Default Z coordinate value.\nThis value have to be assigned to the Z coordinate for the vertex.', 'DEFAULT_M_COORDINATE': 'Default M coordinate value.\nThis value have to be assigned to the M coordinate for the vertex.\n\n.. versionadded:: 3.20', 'UI_SCALE_FACTOR': 'UI scaling factor. This should be applied to all widget sizes obtained from font metrics,\nto account for differences in the default font sizes across different platforms.', 'DEFAULT_SNAP_TOLERANCE': 'Default snapping distance tolerance.', 'DEFAULT_SNAP_UNITS': 'Default snapping distance units.'}
+    Qgis.__attribute_docs__ = {'QGIS_DEV_VERSION': 'The development version', 'DEFAULT_SEARCH_RADIUS_MM': 'Identify search radius in mm', 'DEFAULT_MAPTOPIXEL_THRESHOLD': 'Default threshold between map coordinates and device coordinates for map2pixel simplification', 'DEFAULT_HIGHLIGHT_COLOR': 'Default highlight color.  The transparency is expected to only be applied to polygon\nfill. Lines and outlines are rendered opaque.', 'DEFAULT_HIGHLIGHT_BUFFER_MM': 'Default highlight buffer in mm.', 'DEFAULT_HIGHLIGHT_MIN_WIDTH_MM': 'Default highlight line/stroke minimum width in mm.', 'SCALE_PRECISION': 'Fudge factor used to compare two scales. The code is often going from scale to scale\ndenominator. So it looses precision and, when a limit is inclusive, can lead to errors.\nTo avoid that, use this factor instead of using <= or >=.\n\n.. deprecated:: 3.40\n\n   No longer used by QGIS and will be removed in QGIS 4.0.', 'DEFAULT_Z_COORDINATE': 'Default Z coordinate value.\nThis value have to be assigned to the Z coordinate for the vertex.', 'DEFAULT_M_COORDINATE': 'Default M coordinate value.\nThis value have to be assigned to the M coordinate for the vertex.\n\n.. versionadded:: 3.20', 'UI_SCALE_FACTOR': 'UI scaling factor. This should be applied to all widget sizes obtained from font metrics,\nto account for differences in the default font sizes across different platforms.', 'DEFAULT_SNAP_TOLERANCE': 'Default snapping distance tolerance.', 'DEFAULT_SNAP_UNITS': 'Default snapping distance units.'}
     Qgis.version = staticmethod(Qgis.version)
     Qgis.versionInt = staticmethod(Qgis.versionInt)
     Qgis.releaseName = staticmethod(Qgis.releaseName)

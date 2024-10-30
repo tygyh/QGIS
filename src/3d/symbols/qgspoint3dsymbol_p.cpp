@@ -77,13 +77,13 @@ class QgsInstancedPoint3DSymbolHandler : public QgsFeature3DHandler
       : mSymbol( static_cast< QgsPoint3DSymbol *>( symbol->clone() ) )
       , mSelectedIds( selectedIds ) {}
 
-    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames ) override;
+    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin ) override;
     void processFeature( const QgsFeature &feature, const Qgs3DRenderContext &context ) override;
     void finalize( Qt3DCore::QEntity *parent, const Qgs3DRenderContext &context ) override;
 
   private:
 
-    static Qt3DRender::QMaterial *material( const QgsPoint3DSymbol *symbol, const QgsMaterialContext &materialContext );
+    static QgsMaterial *material( const QgsPoint3DSymbol *symbol, const QgsMaterialContext &materialContext );
     static Qt3DRender::QGeometryRenderer *renderer( const QgsPoint3DSymbol *symbol, const QVector<QVector3D> &positions );
     static Qt3DQGeometry *symbolGeometry( const QgsPoint3DSymbol *symbol );
 
@@ -100,16 +100,22 @@ class QgsInstancedPoint3DSymbolHandler : public QgsFeature3DHandler
     // inputs - generic
     QgsFeatureIds mSelectedIds;
 
+    //! origin (in the map coordinates) for output geometries (e.g. at the center of the chunk)
+    QgsVector3D mChunkOrigin;
+
     // outputs
     PointData outNormal;  //!< Features that are not selected
     PointData outSelected;  //!< Features that are selected
 };
 
 
-bool QgsInstancedPoint3DSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames )
+bool QgsInstancedPoint3DSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin )
 {
   Q_UNUSED( context )
   Q_UNUSED( attributeNames )
+
+  mChunkOrigin = chunkOrigin;
+
   return true;
 }
 
@@ -120,7 +126,7 @@ void QgsInstancedPoint3DSymbolHandler::processFeature( const QgsFeature &feature
   if ( feature.geometry().isNull() )
     return;
 
-  Qgs3DUtils::extractPointPositions( feature, context, mSymbol->altitudeClamping(), out.positions );
+  Qgs3DUtils::extractPointPositions( feature, context, mChunkOrigin, mSymbol->altitudeClamping(), out.positions );
   mFeatureCount++;
 }
 
@@ -205,12 +211,19 @@ void QgsInstancedPoint3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, co
   QgsMaterialContext materialContext;
   materialContext.setIsSelected( selected );
   materialContext.setSelectionColor( context.selectionColor() );
-  Qt3DRender::QMaterial *mat = material( mSymbol.get(), materialContext );
+  QgsMaterial *mat = material( mSymbol.get(), materialContext );
+
+  // add transform (our geometry has coordinates relative to mChunkOrigin)
+  Qt3DCore::QTransform *tr = new Qt3DCore::QTransform;
+  tr->setRotation( QQuaternion::fromAxisAndAngle( QVector3D( 1, 0, 0 ), -90 ) ); // flip map (x,y,z) to world (x,z,-y)
+  QVector3D nodeTranslation = ( mChunkOrigin - context.origin() ).toVector3D();
+  tr->setTranslation( QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
 
   // build the entity
   Qt3DCore::QEntity *entity = new Qt3DCore::QEntity;
   entity->addComponent( renderer( mSymbol.get(), out.positions ) );
   entity->addComponent( mat );
+  entity->addComponent( tr );
   entity->setParent( parent );
 
 // cppcheck wrongly believes entity will leak
@@ -219,7 +232,7 @@ void QgsInstancedPoint3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, co
 
 
 
-Qt3DRender::QMaterial *QgsInstancedPoint3DSymbolHandler::material( const QgsPoint3DSymbol *symbol, const QgsMaterialContext &materialContext )
+QgsMaterial *QgsInstancedPoint3DSymbolHandler::material( const QgsPoint3DSymbol *symbol, const QgsMaterialContext &materialContext )
 {
   Qt3DRender::QFilterKey *filterKey = new Qt3DRender::QFilterKey;
   filterKey->setName( QStringLiteral( "renderingStyle" ) );
@@ -266,7 +279,7 @@ Qt3DRender::QMaterial *QgsInstancedPoint3DSymbolHandler::material( const QgsPoin
 
   symbol->materialSettings()->addParametersToEffect( effect, materialContext );
 
-  Qt3DRender::QMaterial *material = new Qt3DRender::QMaterial;
+  QgsMaterial *material = new QgsMaterial;
   material->setEffect( effect );
 
   return material;
@@ -401,15 +414,15 @@ class QgsModelPoint3DSymbolHandler : public QgsFeature3DHandler
       : mSymbol( static_cast< QgsPoint3DSymbol * >( symbol->clone() ) )
       , mSelectedIds( selectedIds ) {}
 
-    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames ) override;
+    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin ) override;
     void processFeature( const QgsFeature &feature, const Qgs3DRenderContext &context ) override;
     void finalize( Qt3DCore::QEntity *parent, const Qgs3DRenderContext &context ) override;
 
   private:
 
-    static void addSceneEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent );
-    static void addMeshEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent, bool are_selected );
-    static Qt3DCore::QTransform *transform( QVector3D position, const QgsPoint3DSymbol *symbol );
+    static void addSceneEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsVector3D &chunkOrigin, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent );
+    static void addMeshEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsVector3D &chunkOrigin, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent, bool are_selected );
+    static Qt3DCore::QTransform *transform( QVector3D position, const QgsPoint3DSymbol *symbol, const QgsVector3D &chunkOrigin, const QgsVector3D &contextOrigin );
 
     //! temporary data we will pass to the tessellator
     struct PointData
@@ -424,15 +437,21 @@ class QgsModelPoint3DSymbolHandler : public QgsFeature3DHandler
     // inputs - generic
     QgsFeatureIds mSelectedIds;
 
+    //! origin (in the map coordinates) for output geometries (e.g. at the center of the chunk)
+    QgsVector3D mChunkOrigin;
+
     // outputs
     PointData outNormal;  //!< Features that are not selected
     PointData outSelected;  //!< Features that are selected
 };
 
-bool QgsModelPoint3DSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames )
+bool QgsModelPoint3DSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin )
 {
   Q_UNUSED( context )
   Q_UNUSED( attributeNames )
+
+  mChunkOrigin = chunkOrigin;
+
   return true;
 }
 
@@ -443,7 +462,7 @@ void QgsModelPoint3DSymbolHandler::processFeature( const QgsFeature &feature, co
   if ( feature.geometry().isNull() )
     return;
 
-  Qgs3DUtils::extractPointPositions( feature, context, mSymbol->altitudeClamping(), out.positions );
+  Qgs3DUtils::extractPointPositions( feature, context, mChunkOrigin, mSymbol->altitudeClamping(), out.positions );
   mFeatureCount++;
 }
 
@@ -465,7 +484,7 @@ void QgsModelPoint3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, const 
 {
   if ( selected )
   {
-    addMeshEntities( context, out.positions, mSymbol.get(), parent, true );
+    addMeshEntities( context, out.positions, mChunkOrigin, mSymbol.get(), parent, true );
   }
   else
   {
@@ -473,18 +492,18 @@ void QgsModelPoint3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, const 
     if ( mSymbol->shapeProperty( QStringLiteral( "overwriteMaterial" ) ).toBool()
          || ( mSymbol->materialSettings() && mSymbol->materialSettings()->type() != QLatin1String( "null" ) ) )
     {
-      addMeshEntities( context, out.positions, mSymbol.get(), parent, false );
+      addMeshEntities( context, out.positions, mChunkOrigin, mSymbol.get(), parent, false );
     }
     else
     {
-      addSceneEntities( context, out.positions, mSymbol.get(), parent );
+      addSceneEntities( context, out.positions, mChunkOrigin, mSymbol.get(), parent );
     }
   }
 }
 
 
 
-void QgsModelPoint3DSymbolHandler::addSceneEntities( const Qgs3DRenderContext &, const QVector<QVector3D> &positions, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent )
+void QgsModelPoint3DSymbolHandler::addSceneEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsVector3D &chunkOrigin, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent )
 {
   for ( const QVector3D &position : positions )
   {
@@ -500,7 +519,7 @@ void QgsModelPoint3DSymbolHandler::addSceneEntities( const Qgs3DRenderContext &,
       modelLoader->setSource( url );
 
       entity->addComponent( modelLoader );
-      entity->addComponent( transform( position, symbol ) );
+      entity->addComponent( transform( position, symbol, chunkOrigin, context.origin() ) );
       entity->setParent( parent );
 
 // cppcheck wrongly believes entity will leak
@@ -509,7 +528,7 @@ void QgsModelPoint3DSymbolHandler::addSceneEntities( const Qgs3DRenderContext &,
   }
 }
 
-void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent, bool are_selected )
+void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &context, const QVector<QVector3D> &positions, const QgsVector3D &chunkOrigin, const QgsPoint3DSymbol *symbol, Qt3DCore::QEntity *parent, bool are_selected )
 {
   if ( positions.empty() )
     return;
@@ -518,7 +537,7 @@ void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &co
   QgsMaterialContext materialContext;
   materialContext.setIsSelected( are_selected );
   materialContext.setSelectionColor( context.selectionColor() );
-  Qt3DRender::QMaterial *mat = symbol->materialSettings()->toMaterial( QgsMaterialSettingsRenderingTechnique::Triangles, materialContext );
+  QgsMaterial *mat = symbol->materialSettings()->toMaterial( QgsMaterialSettingsRenderingTechnique::Triangles, materialContext );
 
   // get nodes
   for ( const QVector3D &position : positions )
@@ -535,7 +554,7 @@ void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &co
 
       entity->addComponent( mesh );
       entity->addComponent( mat );
-      entity->addComponent( transform( position, symbol ) );
+      entity->addComponent( transform( position, symbol, chunkOrigin, context.origin() ) );
       entity->setParent( parent );
 
 // cppcheck wrongly believes entity will leak
@@ -544,11 +563,15 @@ void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &co
   }
 }
 
-Qt3DCore::QTransform *QgsModelPoint3DSymbolHandler::transform( QVector3D position, const QgsPoint3DSymbol *symbol )
+Qt3DCore::QTransform *QgsModelPoint3DSymbolHandler::transform( QVector3D position, const QgsPoint3DSymbol *symbol, const QgsVector3D &chunkOrigin, const QgsVector3D &contextOrigin )
 {
   Qt3DCore::QTransform *tr = new Qt3DCore::QTransform;
   tr->setMatrix( symbol->transform() );
-  tr->setTranslation( position + tr->translation() );
+  // position is relative to chunkOrigin
+  QVector3D nodeTranslation = ( chunkOrigin - contextOrigin ).toVector3D();
+  tr->setTranslation( tr->translation() +
+                      QVector3D( position.x(), position.z(), -position.y() ) +
+                      QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
   return tr;
 }
 
@@ -563,7 +586,7 @@ class QgsPoint3DBillboardSymbolHandler : public QgsFeature3DHandler
       : mSymbol( static_cast< QgsPoint3DSymbol * >( symbol->clone() ) )
       , mSelectedIds( selectedIds ) {}
 
-    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames ) override;
+    bool prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin ) override;
     void processFeature( const QgsFeature &feature, const Qgs3DRenderContext &context ) override;
     void finalize( Qt3DCore::QEntity *parent, const Qgs3DRenderContext &context ) override;
 
@@ -582,15 +605,21 @@ class QgsPoint3DBillboardSymbolHandler : public QgsFeature3DHandler
     // inputs - generic
     QgsFeatureIds mSelectedIds;
 
+    //! origin (in the map coordinates) for output geometries (e.g. at the center of the chunk)
+    QgsVector3D mChunkOrigin;
+
     // outputs
     PointData outNormal;  //!< Features that are not selected
     PointData outSelected;  //!< Features that are selected
 };
 
-bool QgsPoint3DBillboardSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames )
+bool QgsPoint3DBillboardSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet<QString> &attributeNames, const QgsVector3D &chunkOrigin )
 {
   Q_UNUSED( context )
   Q_UNUSED( attributeNames )
+
+  mChunkOrigin = chunkOrigin;
+
   return true;
 }
 
@@ -601,7 +630,7 @@ void QgsPoint3DBillboardSymbolHandler::processFeature( const QgsFeature &feature
   if ( feature.geometry().isNull() )
     return;
 
-  Qgs3DUtils::extractPointPositions( feature, context, mSymbol->altitudeClamping(), out.positions );
+  Qgs3DUtils::extractPointPositions( feature, context, mChunkOrigin, mSymbol->altitudeClamping(), out.positions );
   mFeatureCount++;
 }
 
@@ -646,7 +675,11 @@ void QgsPoint3DBillboardSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, co
 
   // Billboard Transform
   Qt3DCore::QTransform *billboardTransform = new Qt3DCore::QTransform();
-  billboardTransform->setMatrix( mSymbol->billboardTransform() );
+  billboardTransform->setRotation( QQuaternion::fromAxisAndAngle( QVector3D( 1, 0, 0 ), -90 ) ); // flip map (x,y,z) to world (x,z,-y)
+  QVector3D billboardHeightTranslation( 0, mSymbol->billboardHeight(), 0 );
+  // our geometry has coordinates relative to mChunkOrigin
+  QVector3D nodeTranslation = ( mChunkOrigin - context.origin() ).toVector3D();
+  billboardTransform->setTranslation( billboardHeightTranslation + QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
 
   // Build the entity
   Qt3DCore::QEntity *entity = new Qt3DCore::QEntity;

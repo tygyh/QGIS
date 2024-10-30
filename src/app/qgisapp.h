@@ -138,7 +138,7 @@ class QgsDataItem;
 class QgsTileScaleWidget;
 class QgsLabelingWidget;
 class QgsLayerStylingWidget;
-class QgsDiagramProperties;
+class QgsStackedDiagramProperties;
 class QgsLocatorWidget;
 class QgsNominatimGeocoder;
 class QgsDataSourceManagerDialog;
@@ -897,9 +897,10 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsAppCanvasFiltering *canvasFiltering();
 
     /**
-     * Take screenshots for user documentation
-     * @param saveDirectory path were the screenshots will be saved
-     * @param categories an int as a flag value of QgsAppScreenShots::Categories
+     * Take screenshots for user documentation.
+     *
+     * \param saveDirectory path were the screenshots will be saved
+     * \param categories an int as a flag value of QgsAppScreenShots::Categories
      */
     void takeAppScreenShots( const QString &saveDirectory, const int categories = 0 );
 
