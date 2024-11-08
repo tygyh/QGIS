@@ -477,16 +477,26 @@ if(PEDANTIC)
 endif()
 
 if(MSVC)
-# -wd4091 Avoid 'typedef' ignored on left of '' when no variable is declared warning in dbghelp.h
-set_source_files_properties(
-  qgisapp.cpp
-  main.cpp
-  qgscrashhandler.cpp
-  PROPERTIES COMPILE_FLAGS -wd4091)
+  # -wd4091 Avoid 'typedef' ignored on left of '' when no variable is declared warning in dbghelp.h
+  set_source_files_properties(
+    qgisapp.cpp
+    main.cpp
+    qgscrashhandler.cpp
+    PROPERTIES COMPILE_FLAGS -wd4091
+  )
+  set_source_files_properties(
+    qgisapp.cpp
+    PROPERTIES COMPILE_FLAGS "/bigobj"
+  )
+elseif(MINGW)
+  set_source_files_properties(
+    qgisapp.cpp
+    PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj"
+  )
 endif()
 
 if(HAVE_OPENCL)
-    include_directories(SYSTEM ${OpenCL_INCLUDE_DIRS})
+  include_directories(SYSTEM ${OpenCL_INCLUDE_DIRS})
 endif()
 
 if(ENABLE_MODELTEST)
@@ -520,9 +530,9 @@ else()
   endif()
   add_executable(${QGIS_APP_NAME} ${MACOSX_BUNDLE} WIN32 ${QGIS_APPMAIN_SRCS})
 
-  if(MSVC AND BUILD_WITH_QT6)
+  if(WIN32 AND BUILD_WITH_QT6)
     qt_disable_unicode_defines(${QGIS_APP_NAME})
-  endif(MSVC AND BUILD_WITH_QT6)
+  endif()
 
   # require c++17
   target_compile_features(${QGIS_APP_NAME} PRIVATE cxx_std_17)

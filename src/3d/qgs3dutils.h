@@ -151,9 +151,9 @@ class _3D_EXPORT Qgs3DUtils
     */
     static bool isCullable( const QgsAABB &bbox, const QMatrix4x4 &viewProjectionMatrix );
 
-    //! Converts map coordinates to 3D world coordinates (applies offset and turns (x,y,z) into (x,-z,y))
+    //! Converts map coordinates to 3D world coordinates (applies offset)
     static QgsVector3D mapToWorldCoordinates( const QgsVector3D &mapCoords, const QgsVector3D &origin );
-    //! Converts 3D world coordinates to map coordinates (applies offset and turns (x,y,z) into (x,-z,y))
+    //! Converts 3D world coordinates to map coordinates (applies offset)
     static QgsVector3D worldToMapCoordinates( const QgsVector3D &worldCoords, const QgsVector3D &origin );
 
     /**
@@ -331,6 +331,15 @@ class _3D_EXPORT Qgs3DUtils
      * \since QGIS 3.40
      */
     static QByteArray removeDefinesFromShaderCode( const QByteArray &shaderCode, const QStringList &defines );
+
+    /**
+     * Tries to decompose a 4x4 transform matrix into translation, rotation and scale components.
+     * It is expected that the matrix has been created by only applying these transforms, otherwise
+     * the results are undefined.
+     *
+     * \since QGIS 3.42
+     */
+    static void decomposeTransformMatrix( const QMatrix4x4 &matrix, QVector3D &translation, QQuaternion &rotation, QVector3D &scale );
 };
 
 #endif // QGS3DUTILS_H

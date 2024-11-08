@@ -16,6 +16,7 @@
  ***************************************************************************/
 
 #include "qgsproject.h"
+#include "moc_qgsproject.cpp"
 
 #include "qgsdatasourceuri.h"
 #include "qgslabelingenginesettings.h"
@@ -2823,8 +2824,13 @@ void QgsProject::setAvoidIntersectionsLayers( const QList<QgsVectorLayer *> &lay
 
   QStringList list;
   list.reserve( layers.size() );
+
   for ( QgsVectorLayer *layer : layers )
-    list << layer->id();
+  {
+    if ( layer->geometryType() == Qgis::GeometryType::Polygon )
+      list << layer->id();
+  }
+
   writeEntry( QStringLiteral( "Digitizing" ), QStringLiteral( "/AvoidIntersectionsList" ), list );
   emit avoidIntersectionsLayersChanged();
 }

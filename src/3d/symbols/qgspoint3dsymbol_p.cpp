@@ -139,7 +139,7 @@ void QgsInstancedPoint3DSymbolHandler::finalize( Qt3DCore::QEntity *parent, cons
   updateZRangeFromPositions( outSelected.positions );
 
   // the elevation offset is applied in the vertex shader so let's account for it as well
-  const float symbolOffset = mSymbol->transform().data()[13];
+  const float symbolOffset = mSymbol->transform().data()[14];
 
   // also account for the actual height of the objects themselves
   // NOTE -- these calculations are naive, and assume no rotation or scaling of the symbol!
@@ -215,9 +215,8 @@ void QgsInstancedPoint3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, co
 
   // add transform (our geometry has coordinates relative to mChunkOrigin)
   Qt3DCore::QTransform *tr = new Qt3DCore::QTransform;
-  tr->setRotation( QQuaternion::fromAxisAndAngle( QVector3D( 1, 0, 0 ), -90 ) ); // flip map (x,y,z) to world (x,z,-y)
   QVector3D nodeTranslation = ( mChunkOrigin - context.origin() ).toVector3D();
-  tr->setTranslation( QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
+  tr->setTranslation( nodeTranslation );
 
   // build the entity
   Qt3DCore::QEntity *entity = new Qt3DCore::QEntity;
@@ -475,7 +474,7 @@ void QgsModelPoint3DSymbolHandler::finalize( Qt3DCore::QEntity *parent, const Qg
   updateZRangeFromPositions( outSelected.positions );
 
   // the elevation offset is applied separately in QTransform added to sub-entities
-  const float symbolHeight = mSymbol->transform().data()[13];
+  const float symbolHeight = mSymbol->transform().data()[14];
   mZMin += symbolHeight;
   mZMax += symbolHeight;
 }
@@ -565,13 +564,13 @@ void QgsModelPoint3DSymbolHandler::addMeshEntities( const Qgs3DRenderContext &co
 
 Qt3DCore::QTransform *QgsModelPoint3DSymbolHandler::transform( QVector3D position, const QgsPoint3DSymbol *symbol, const QgsVector3D &chunkOrigin, const QgsVector3D &contextOrigin )
 {
-  Qt3DCore::QTransform *tr = new Qt3DCore::QTransform;
-  tr->setMatrix( symbol->transform() );
   // position is relative to chunkOrigin
   QVector3D nodeTranslation = ( chunkOrigin - contextOrigin ).toVector3D();
-  tr->setTranslation( tr->translation() +
-                      QVector3D( position.x(), position.z(), -position.y() ) +
-                      QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
+  QMatrix4x4 translation;
+  translation.translate( nodeTranslation + position );
+
+  Qt3DCore::QTransform *tr = new Qt3DCore::QTransform;
+  tr->setMatrix( translation * symbol->transform() );
   return tr;
 }
 
@@ -643,7 +642,7 @@ void QgsPoint3DBillboardSymbolHandler::finalize( Qt3DCore::QEntity *parent, cons
   updateZRangeFromPositions( outSelected.positions );
 
   // the elevation offset is applied externally through a QTransform of QEntity so let's account for it
-  const float billboardHeight = mSymbol->transform().data()[13];
+  const float billboardHeight = mSymbol->billboardHeight();
   mZMin += billboardHeight;
   mZMax += billboardHeight;
 }
@@ -675,11 +674,10 @@ void QgsPoint3DBillboardSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, co
 
   // Billboard Transform
   Qt3DCore::QTransform *billboardTransform = new Qt3DCore::QTransform();
-  billboardTransform->setRotation( QQuaternion::fromAxisAndAngle( QVector3D( 1, 0, 0 ), -90 ) ); // flip map (x,y,z) to world (x,z,-y)
-  QVector3D billboardHeightTranslation( 0, mSymbol->billboardHeight(), 0 );
+  QVector3D billboardHeightTranslation( 0, 0, mSymbol->billboardHeight() );
   // our geometry has coordinates relative to mChunkOrigin
   QVector3D nodeTranslation = ( mChunkOrigin - context.origin() ).toVector3D();
-  billboardTransform->setTranslation( billboardHeightTranslation + QVector3D( nodeTranslation.x(), nodeTranslation.z(), -nodeTranslation.y() ) );
+  billboardTransform->setTranslation( billboardHeightTranslation + nodeTranslation );
 
   // Build the entity
   Qt3DCore::QEntity *entity = new Qt3DCore::QEntity;
