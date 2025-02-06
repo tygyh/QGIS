@@ -114,7 +114,7 @@ class CORE_EXPORT QgsRegularPolygon
      * The apothem is the radius of the inscribed circle.
      * \see radius()
      */
-    double apothem() const SIP_HOLDGIL { return mRadius * std::cos( M_PI / mNumberSides ); }
+    double apothem() const SIP_HOLDGIL { return mNumberSides < 3 ? 0 : mRadius * std::cos( M_PI / mNumberSides ); }
 
     /**
      * Returns the number of sides of the regular polygon.

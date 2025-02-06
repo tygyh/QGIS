@@ -217,8 +217,8 @@ void QgsRasterLayerLabelProvider::generateLabels( QgsRenderContext &context, Qgs
   {
     // calculate size in painter units of one raster pixel
     QgsPointXY p1( rasterSubRegion.xMinimum(), rasterSubRegion.yMinimum() );
-    QgsPointXY p2( rasterSubRegion.xMinimum() + rasterSubRegion.width() / subRegionWidth,
-                   rasterSubRegion.yMinimum() + rasterSubRegion.height() / subRegionHeight );
+    QgsPointXY p2( rasterSubRegion.xMinimum() + ( subRegionWidth ? 0 : rasterSubRegion.width() / subRegionWidth ),
+                   rasterSubRegion.yMinimum() + ( subRegionHeight ? 0 : rasterSubRegion.height() / subRegionHeight ) );
     try
     {
       p1 = context.coordinateTransform().transform( p1 );

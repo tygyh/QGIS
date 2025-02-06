@@ -380,7 +380,7 @@ void QgsPointCloudLayerExporter::ExporterBase::run()
       if ( mParent->mFeedback &&
            i % 1000 == 0 )
       {
-        mParent->mFeedback->setProgress( 100 * static_cast< float >( pointsExported ) / pointsToExport );
+        mParent->mFeedback->setProgress( 100 * ( pointsToExport == 0 ? 1 : static_cast< float >( pointsExported ) / pointsToExport ) );
         if ( mParent->mFeedback->isCanceled() )
         {
           mParent->setLastError( QObject::tr( "Canceled by user" ) );

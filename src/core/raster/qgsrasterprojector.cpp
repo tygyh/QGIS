@@ -239,8 +239,8 @@ ProjectorData::ProjectorData( const QgsRectangle &extent, int width, int height,
   // Calculate source dimensions
   calcSrcExtent();
   calcSrcRowsCols();
-  mSrcYRes = mSrcExtent.height() / mSrcRows;
-  mSrcXRes = mSrcExtent.width() / mSrcCols;
+  mSrcYRes = mSrcRows == 0 ? 0 : mSrcExtent.height() / mSrcRows;
+  mSrcXRes = mSrcCols == 0 ? 0 : mSrcExtent.width() / mSrcCols;
 }
 
 ProjectorData::~ProjectorData()
